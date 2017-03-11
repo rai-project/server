@@ -36,50 +36,49 @@ type nopWriterCloser struct {
 func (nopWriterCloser) Close() error { return nil }
 
 func New(opts ...Option) (*server, error) {
-	out, err := colorable.NewColorableStdout(), colorable.NewColorableStderr()
+	stdout, stderr := colorable.NewColorableStdout(), colorable.NewColorableStderr()
 	if viper.GetBool("app.color") {
-		out = colorable.NewNonColorable(out)
-		err = colorable.NewNonColorable(err)
+		stdout = colorable.NewNonColorable(stdout)
+		stderr = colorable.NewNonColorable(stderr)
 	}
 	options := Options{
-		stdout: nopWriterCloser{out},
-		stderr: nopWriterCloser{err},
+		stdout: nopWriterCloser{stdout},
+		stderr: nopWriterCloser{stderr},
 	}
 
 	for _, o := range opts {
 		o(&options)
 	}
 
-	return &server{
-		ID:          uuid.NewV4(),
-		isConnected: false,
-		options:     options,
-	}, nil
-}
+	id := uuid.NewV4()
 
-func (s *server) Validate() error {
 	// Create an AWS session
-	session, err := aws.NewSession(
+	awsSession, err := aws.NewSession(
 		aws.Region(aws.AWSRegionUSEast1),
 		aws.EncryptedAccessKey(aws.Config.AccessKey),
 		aws.EncryptedSecretKey(aws.Config.SecretKey),
-		aws.Sts(s.ID),
+		aws.Sts(id),
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	s.awsSession = session
 
-	return nil
+	return &server{
+		ID:          id,
+		isConnected: false,
+		options:     options,
+		awsSession:  awsSession,
+	}, nil
 }
 
 func (s *server) jobHandler(pub broker.Publication) error {
 	msg := pub.Message()
-	pp.Println("body = ", string(msg.Body))
+
+	pp.Println("id = ", msg.ID, " body = ", string(msg.Body))
 	return nil
 }
 
-func (s *server) PublishSubscribe() error {
+func (s *server) publishSubscribe() error {
 	brkr, err := sqs.New(
 		sqs.QueueName(config.App.Name),
 		broker.Serializer(json.New()),
@@ -105,6 +104,11 @@ func (s *server) PublishSubscribe() error {
 }
 
 func (s *server) Connect() error {
+
+	if err := s.publishSubscribe(); err != nil {
+		return err
+	}
+
 	if err := s.broker.Connect(); err != nil {
 		return err
 	}
