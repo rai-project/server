@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"io"
 
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -11,10 +12,11 @@ import (
 	"github.com/rai-project/broker"
 	"github.com/rai-project/broker/sqs"
 	"github.com/rai-project/config"
+	"github.com/rai-project/model"
 	"github.com/rai-project/pubsub"
+	"github.com/rai-project/serializer"
 	"github.com/rai-project/serializer/json"
 	"github.com/rai-project/uuid"
-	"github.com/spf13/viper"
 )
 
 type server struct {
@@ -25,6 +27,7 @@ type server struct {
 	pubsubConn    pubsub.Connection
 	profile       auth.Profile
 	isConnected   bool
+	serializer    serializer.Serializer
 	jobSubscriber broker.Subscriber
 	publishers    map[string]pubsub.Publisher
 }
@@ -37,10 +40,11 @@ func (nopWriterCloser) Close() error { return nil }
 
 func New(opts ...Option) (*server, error) {
 	stdout, stderr := colorable.NewColorableStdout(), colorable.NewColorableStderr()
-	if viper.GetBool("app.color") {
+	if !config.App.Color {
 		stdout = colorable.NewNonColorable(stdout)
 		stderr = colorable.NewNonColorable(stderr)
 	}
+
 	options := Options{
 		stdout: nopWriterCloser{stdout},
 		stderr: nopWriterCloser{stderr},
@@ -68,13 +72,24 @@ func New(opts ...Option) (*server, error) {
 		isConnected: false,
 		options:     options,
 		awsSession:  awsSession,
+		serializer:  json.New(),
 	}, nil
 }
 
 func (s *server) jobHandler(pub broker.Publication) error {
-	msg := pub.Message()
+	var jobRequest model.JobRequest
 
-	pp.Println("id = ", msg.ID, " body = ", string(msg.Body))
+	msg := pub.Message()
+	if msg == nil {
+		return errors.New("recieved a nil message")
+	}
+	body := msg.Body
+	err := s.serializer.Unmarshal(body, &jobRequest)
+	if err != nil {
+		log.WithError(err).WithField("id", msg.ID).Error("failed to parse job request")
+		return err
+	}
+	pp.Println(jobRequest)
 	return nil
 }
 
