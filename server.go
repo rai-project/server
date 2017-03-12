@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"io"
 	"runtime"
@@ -64,10 +65,16 @@ func New(opts ...Option) (*Server, error) {
 	}
 
 	options := Options{
-		stdout:       nopWriterCloser{stdout},
-		stderr:       nopWriterCloser{stderr},
-		numworkers:   nworkers,
-		jobQueueName: config.App.Name,
+		stdout:                           nopWriterCloser{stdout},
+		stderr:                           nopWriterCloser{stderr},
+		numworkers:                       nworkers,
+		jobQueueName:                     config.App.Name,
+		containerBuildDirectory:          DefaultContainerBuildDirectory,
+		containerSourceDirectory:         DefaultContainerSourceDirectory,
+		clientUploadBucketName:           Config.ClientUploadBucketName,
+		clientUploadDestinationDirectory: Config.ClientUploadDestinationDirectory,
+		clientAppName:                    Config.ClientAppName,
+		context:                          context.Background(),
 	}
 
 	for _, o := range opts {
@@ -110,7 +117,7 @@ func (s *Server) jobHandler(pub broker.Publication) error {
 		return err
 	}
 
-	work, err := NewWorkerRequest(jobRequest)
+	work, err := NewWorkerRequest(jobRequest, s.options)
 	if err != nil {
 		return err
 	}

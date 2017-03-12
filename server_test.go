@@ -17,12 +17,13 @@ func TestServer(t *testing.T) {
 	assert.NotNil(t, svr)
 
 	err = svr.Connect()
+	defer svr.Disconnect()
+
 	if !assert.NoError(t, err) {
 		return
 	}
 	time.Sleep(time.Minute)
 
-	defer svr.Disconnect()
 }
 
 func TestMain(m *testing.M) {

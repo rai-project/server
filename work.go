@@ -2,13 +2,21 @@ package server
 
 import (
 	"io"
+	"time"
 
+	"bytes"
+
+	azaws "github.com/aws/aws-sdk-go/aws"
 	"github.com/fatih/color"
-	"github.com/rai-project/config"
+	"github.com/k0kubun/pp"
+	"github.com/rai-project/archive"
+	"github.com/rai-project/aws"
 	"github.com/rai-project/docker"
 	"github.com/rai-project/model"
 	"github.com/rai-project/pubsub"
 	"github.com/rai-project/pubsub/redis"
+	"github.com/rai-project/store"
+	"github.com/rai-project/store/s3"
 )
 
 type WorkRequest struct {
@@ -19,8 +27,10 @@ type WorkRequest struct {
 	docker         *docker.Client
 	container      *docker.Container
 	buildSpec      model.BuildSpecification
+	store          store.Store
 	stdout         io.Writer
 	stderr         io.Writer
+	serverOptions  Options
 }
 
 type publishWriter struct {
@@ -31,14 +41,21 @@ type publishWriter struct {
 
 func (w *publishWriter) Write(p []byte) (int, error) {
 	w.publisher.Publish(w.publishChannel, model.JobResponse{
-		Kind: w.kind,
-		Body: p,
+		Kind:      w.kind,
+		Body:      p,
+		CreatedAt: time.Now(),
 	})
 	return len(p), nil
 }
 
-func NewWorkerRequest(job model.JobRequest) (*WorkRequest, error) {
-	publishChannel := config.App.Name + "/log-" + job.ID
+var (
+	DefaultUploadExpiration = func() time.Time {
+		return time.Now().AddDate(0, 1, 0) // next month
+	}
+)
+
+func NewWorkerRequest(job model.JobRequest, serverOpts Options) (*WorkRequest, error) {
+	publishChannel := serverOpts.clientAppName + "/log-" + job.ID
 
 	conn, err := redis.New()
 	if err != nil {
@@ -61,6 +78,23 @@ func NewWorkerRequest(job model.JobRequest) (*WorkRequest, error) {
 		kind:           model.StderrResponse,
 	}
 
+	session, err := aws.NewSession(
+		aws.Region(aws.AWSRegionUSEast1),
+		aws.EncryptedAccessKey(aws.Config.AccessKey),
+		aws.EncryptedSecretKey(aws.Config.SecretKey),
+		aws.Sts("server-"+job.ID),
+	)
+	if err != nil {
+		return nil, err
+	}
+	st, err := s3.New(
+		s3.Session(session),
+		store.Bucket(serverOpts.clientUploadBucketName),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	d, err := docker.NewClient(
 		docker.Stdout(stdout),
 		docker.Stderr(stderr),
@@ -73,27 +107,46 @@ func NewWorkerRequest(job model.JobRequest) (*WorkRequest, error) {
 		publisher:      publisher,
 		docker:         d,
 		buildSpec:      job.BuildSpecification,
+		store:          st,
+		serverOptions:  serverOpts,
 	}, nil
 }
 
 func (w *WorkRequest) publishStdout(s string) error {
 	return w.publisher.Publish(w.publishChannel, model.JobResponse{
-		Kind: model.StdoutResponse,
-		Body: []byte(s),
+		Kind:      model.StdoutResponse,
+		Body:      []byte(s),
+		CreatedAt: time.Now(),
 	})
 }
 
 func (w *WorkRequest) publishStderr(s string) error {
 	return w.publisher.Publish(w.publishChannel, model.JobResponse{
-		Kind: model.StderrResponse,
-		Body: []byte(s),
+		Kind:      model.StderrResponse,
+		Body:      []byte(s),
+		CreatedAt: time.Now(),
 	})
 }
 
 func (w *WorkRequest) Start() error {
 	buildSpec := w.buildSpec
 
+	defer func() {
+		pp.Println("sending end request")
+		w.publishStdout(color.GreenString("✱ Server has ended your request."))
+		w.publisher.End(w.publishChannel)
+	}()
+
 	w.publishStdout(color.YellowString("✱ Server has accepted your job submission and started to configure the container."))
+
+	w.publishStdout(color.YellowString("✱ Downloading your code."))
+
+	buf := new(azaws.WriteAtBuffer)
+	if err := w.store.DownloadTo(buf, w.UploadKey); err != nil {
+		w.publishStdout(color.RedString("✱ Failed to download your code."))
+		log.WithError(err).WithField("key", w.UploadKey).Error("failed to download user code from store")
+		return err
+	}
 
 	imageName := buildSpec.RAI.ContainerImage
 	w.publishStdout(color.YellowString("✱ Using " + imageName + " as container image."))
@@ -122,6 +175,49 @@ func (w *WorkRequest) Start() error {
 		return err
 	}
 	w.container = container
+
+	srcDir := w.serverOptions.containerSourceDirectory
+	if err := container.CopyToContainer(srcDir, bytes.NewBuffer(buf.Bytes())); err != nil {
+		w.publishStderr(color.RedString("✱ Unable to copy your data to the container directory " + srcDir + " ."))
+		log.WithError(err).WithField("dir", srcDir).Error("unable to upload user data to container")
+		return err
+	}
+
+	defer func() {
+		opts := w.serverOptions
+		dir := opts.containerBuildDirectory
+		r, err := container.CopyFromContainer(dir)
+		if err != nil {
+			w.publishStderr(color.RedString("✱ Unable to copy your output data in " + dir + " from the container."))
+			log.WithError(err).WithField("dir", dir).Error("unable to get user data from container")
+			return
+		}
+
+		uploadKey := opts.clientUploadDestinationDirectory + "/build-" + w.ID + ".tar." + archive.Config.CompressionFormatString
+		key, err := w.store.UploadFrom(
+			r,
+			uploadKey,
+			s3.Expiration(DefaultUploadExpiration()),
+			s3.Metadata(map[string]interface{}{
+				"id":           w.ID,
+				"type":         "server_upload",
+				"worker":       info(),
+				"profile":      w.User,
+				"submitted_at": w.CreatedAt,
+				"created_at":   time.Now(),
+			}),
+			s3.ContentType(archive.MimeType()),
+		)
+		if err != nil {
+			w.publishStderr(color.RedString("✱ Unable to upload your output data in " + dir + " to the store server."))
+			log.WithError(err).WithField("dir", dir).WithField("key", uploadKey).Error("unable to upload user data to store")
+			return
+		}
+		w.publishStdout(color.GreenString(
+			"✱ ✱ The build folder has been uploaded to " + key +
+				". The data will be present for only a short duration of time.",
+		))
+	}()
 
 	w.publishStdout(color.YellowString("✱ Starting container."))
 
@@ -166,9 +262,6 @@ func (w *WorkRequest) Stop() error {
 	}
 
 	if w.publisher != nil {
-		w.publishStdout(color.GreenString("✱ Server has ended your request."))
-		w.publisher.End(w.publishChannel)
-
 		if err := w.publisher.Stop(); err != nil {
 			log.WithError(err).Error("failed to stop pubsub publisher")
 		}
