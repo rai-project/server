@@ -6,33 +6,28 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rai-project/model"
 	"github.com/rai-project/uuid"
 )
 
-type WorkRequest struct {
-	model.JobRequest
-}
-
 type Worker struct {
 	ID          string
-	Work        chan WorkRequest
-	WorkerQueue chan chan WorkRequest
+	Work        chan *WorkRequest
+	WorkerQueue chan chan *WorkRequest
 	QuitChan    chan bool
 }
 
 type Dispatcher struct {
 	workers     []*Worker
-	workerQueue chan chan WorkRequest
-	workQueue   chan WorkRequest
+	workerQueue chan chan *WorkRequest
+	workQueue   chan *WorkRequest
 	waitgroup   sync.WaitGroup
 }
 
-func NewWorker(id int, workerQueue chan chan WorkRequest) *Worker {
+func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
 	// Create, and return the worker.
 	worker := &Worker{
 		ID:          uuid.NewV4() + ":::" + strconv.Itoa(id),
-		Work:        make(chan WorkRequest),
+		Work:        make(chan *WorkRequest),
 		WorkerQueue: workerQueue,
 		QuitChan:    make(chan bool),
 	}
@@ -70,8 +65,8 @@ func (w *Worker) Stop() {
 
 func StartDispatcher(nworkers int) *Dispatcher {
 	// First, initialize the channel we are going to but the workers' work channels into.
-	workerQueue := make(chan chan WorkRequest, nworkers)
-	workQueue := make(chan WorkRequest, 100)
+	workerQueue := make(chan chan *WorkRequest, nworkers)
+	workQueue := make(chan *WorkRequest, 100)
 	workers := make([]*Worker, nworkers)
 	var wg sync.WaitGroup
 

@@ -100,9 +100,13 @@ func (s *server) jobHandler(pub broker.Publication) error {
 		log.WithError(err).WithField("id", msg.ID).Error("failed to parse job request")
 		return err
 	}
-	s.dispatcher.workQueue <- WorkRequest{
-		JobRequest: jobRequest,
+
+	work, err := NewWorkerRequest(jobRequest)
+	if err != nil {
+		return err
 	}
+	s.dispatcher.workQueue <- work
+
 	return nil
 }
 
