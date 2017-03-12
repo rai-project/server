@@ -20,7 +20,7 @@ func TestServer(t *testing.T) {
 	if !assert.NoError(t, err) {
 		return
 	}
-	time.Sleep(time.Second)
+	time.Sleep(time.Minute)
 
 	defer svr.Disconnect()
 }

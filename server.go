@@ -3,9 +3,9 @@ package server
 import (
 	"errors"
 	"io"
+	"runtime"
 
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/k0kubun/pp"
 	colorable "github.com/mattn/go-colorable"
 	"github.com/rai-project/auth"
 	"github.com/rai-project/aws"
@@ -13,6 +13,7 @@ import (
 	"github.com/rai-project/broker/sqs"
 	"github.com/rai-project/config"
 	"github.com/rai-project/model"
+	nvidiasmi "github.com/rai-project/nvidia-smi"
 	"github.com/rai-project/pubsub"
 	"github.com/rai-project/serializer"
 	"github.com/rai-project/serializer/json"
@@ -29,6 +30,7 @@ type server struct {
 	isConnected   bool
 	serializer    serializer.Serializer
 	jobSubscriber broker.Subscriber
+	dispatcher    *Dispatcher
 	publishers    map[string]pubsub.Publisher
 }
 
@@ -39,6 +41,14 @@ type nopWriterCloser struct {
 func (nopWriterCloser) Close() error { return nil }
 
 func New(opts ...Option) (*server, error) {
+	nworkers := runtime.NumCPU()
+	if nvidiasmi.HasGPU {
+		nworkers = nvidiasmi.GPUCount
+	}
+	if config.IsDebug {
+		nworkers = 1
+	}
+
 	stdout, stderr := colorable.NewColorableStdout(), colorable.NewColorableStderr()
 	if !config.App.Color {
 		stdout = colorable.NewNonColorable(stdout)
@@ -46,8 +56,9 @@ func New(opts ...Option) (*server, error) {
 	}
 
 	options := Options{
-		stdout: nopWriterCloser{stdout},
-		stderr: nopWriterCloser{stderr},
+		stdout:     nopWriterCloser{stdout},
+		stderr:     nopWriterCloser{stderr},
+		numworkers: nworkers,
 	}
 
 	for _, o := range opts {
@@ -89,7 +100,9 @@ func (s *server) jobHandler(pub broker.Publication) error {
 		log.WithError(err).WithField("id", msg.ID).Error("failed to parse job request")
 		return err
 	}
-	pp.Println(jobRequest)
+	s.dispatcher.workQueue <- WorkRequest{
+		JobRequest: jobRequest,
+	}
 	return nil
 }
 
@@ -119,6 +132,7 @@ func (s *server) publishSubscribe() error {
 }
 
 func (s *server) Connect() error {
+	s.dispatcher = StartDispatcher(s.options.numworkers)
 
 	if err := s.publishSubscribe(); err != nil {
 		return err
