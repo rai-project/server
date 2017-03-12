@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/rai-project/uuid"
 )
@@ -45,10 +44,10 @@ func (w *Worker) Start() {
 			case work := <-w.Work:
 				// Receive a work request.
 				fmt.Printf("worker%v: Received work request\n", w.ID)
-
-				time.Sleep(time.Second)
-				fmt.Printf("worker%v: Hello, %s!\n", w.ID, work.User.Username)
-
+				if err := work.Start(); err != nil {
+					continue
+				}
+				work.Stop()
 			case <-w.QuitChan:
 				// We have been asked to stop.
 				fmt.Printf("worker%d stopping\n", w.ID)
