@@ -8,7 +8,6 @@ import (
 
 	azaws "github.com/aws/aws-sdk-go/aws"
 	"github.com/fatih/color"
-	"github.com/k0kubun/pp"
 	"github.com/rai-project/archive"
 	"github.com/rai-project/aws"
 	"github.com/rai-project/docker"
@@ -132,7 +131,6 @@ func (w *WorkRequest) Start() error {
 	buildSpec := w.buildSpec
 
 	defer func() {
-		pp.Println("sending end request")
 		w.publishStdout(color.GreenString("✱ Server has ended your request."))
 		w.publisher.End(w.publishChannel)
 	}()
@@ -160,7 +158,14 @@ func (w *WorkRequest) Start() error {
 			return err
 		}
 	}
-	containerOpts := []docker.ContainerOption{}
+
+	srcDir := w.serverOptions.containerSourceDirectory
+	buildDir := w.serverOptions.containerBuildDirectory
+
+	containerOpts := []docker.ContainerOption{
+		docker.AddVolume(srcDir),
+		docker.AddVolume(buildDir),
+	}
 	if buildSpec.Resources.GPUs >= 1 {
 		if buildSpec.Resources.GPUs > 1 {
 			w.publishStderr(color.RedString("✱ Only one gpu can be currently supported for a job submission."))
@@ -176,7 +181,20 @@ func (w *WorkRequest) Start() error {
 	}
 	w.container = container
 
-	srcDir := w.serverOptions.containerSourceDirectory
+	// exec, err := docker.NewExecutionFromString(container, "mkdir -p "+srcDir)
+	// if err != nil {
+	// 	w.publishStderr(color.RedString("✱ Unable create `mkdir -p " + srcDir + "` command"))
+	// 	log.WithError(err).WithField("cmd", "mkdir -p "+srcDir).Error("unable to create mkdir -p " + srcDir + " command")
+	// 	return err
+	// }
+	// exec.Stderr = w.stderr
+	// exec.Stdout = w.stdout
+	// if err := exec.Run(); err != nil {
+	// 	w.publishStderr(color.RedString("✱ Unable create " + srcDir))
+	// 	log.WithError(err).WithField("cmd", "mkdir -p "+srcDir).Error("unable to create " + srcDir + " directory")
+	// 	return err
+	// }
+
 	if err := container.CopyToContainer(srcDir, bytes.NewBuffer(buf.Bytes())); err != nil {
 		w.publishStderr(color.RedString("✱ Unable to copy your data to the container directory " + srcDir + " ."))
 		log.WithError(err).WithField("dir", srcDir).Error("unable to upload user data to container")
@@ -237,6 +255,7 @@ func (w *WorkRequest) Start() error {
 		exec.Stdin = nil
 		exec.Stderr = w.stderr
 		exec.Stdout = w.stdout
+		exec.Dir = buildDir
 
 		w.publishStdout(color.GreenString("✱ Running " + cmd))
 
@@ -252,7 +271,6 @@ func (w *WorkRequest) Start() error {
 }
 
 func (w *WorkRequest) Stop() error {
-
 	if w.container != nil {
 		w.container.Stop()
 	}
