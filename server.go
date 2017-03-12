@@ -20,7 +20,7 @@ import (
 	"github.com/rai-project/uuid"
 )
 
-type server struct {
+type Server struct {
 	ID            string
 	awsSession    *session.Session
 	options       Options
@@ -32,6 +32,14 @@ type server struct {
 	jobSubscriber broker.Subscriber
 	dispatcher    *Dispatcher
 	publishers    map[string]pubsub.Publisher
+
+	// BeforeShutdown is an optional callback function that is called
+	// before the server is closed.
+	BeforeShutdown func()
+
+	// AfterShutdown is an optional callback function that is called
+	// after the server is closed.
+	AfterShutdown func()
 }
 
 type nopWriterCloser struct {
@@ -40,7 +48,7 @@ type nopWriterCloser struct {
 
 func (nopWriterCloser) Close() error { return nil }
 
-func New(opts ...Option) (*server, error) {
+func New(opts ...Option) (*Server, error) {
 	nworkers := runtime.NumCPU()
 	if nvidiasmi.HasGPU {
 		nworkers = nvidiasmi.GPUCount
@@ -56,9 +64,10 @@ func New(opts ...Option) (*server, error) {
 	}
 
 	options := Options{
-		stdout:     nopWriterCloser{stdout},
-		stderr:     nopWriterCloser{stderr},
-		numworkers: nworkers,
+		stdout:       nopWriterCloser{stdout},
+		stderr:       nopWriterCloser{stderr},
+		numworkers:   nworkers,
+		jobQueueName: config.App.Name,
 	}
 
 	for _, o := range opts {
@@ -78,7 +87,7 @@ func New(opts ...Option) (*server, error) {
 		return nil, err
 	}
 
-	return &server{
+	return &Server{
 		ID:          id,
 		isConnected: false,
 		options:     options,
@@ -87,7 +96,7 @@ func New(opts ...Option) (*server, error) {
 	}, nil
 }
 
-func (s *server) jobHandler(pub broker.Publication) error {
+func (s *Server) jobHandler(pub broker.Publication) error {
 	var jobRequest model.JobRequest
 
 	msg := pub.Message()
@@ -110,9 +119,9 @@ func (s *server) jobHandler(pub broker.Publication) error {
 	return nil
 }
 
-func (s *server) publishSubscribe() error {
+func (s *Server) publishSubscribe() error {
 	brkr, err := sqs.New(
-		sqs.QueueName(config.App.Name),
+		sqs.QueueName(s.options.jobQueueName),
 		broker.Serializer(json.New()),
 		sqs.Session(s.awsSession),
 	)
@@ -135,7 +144,7 @@ func (s *server) publishSubscribe() error {
 	return nil
 }
 
-func (s *server) Connect() error {
+func (s *Server) Connect() error {
 	s.dispatcher = StartDispatcher(s.options.numworkers)
 
 	if err := s.publishSubscribe(); err != nil {
@@ -149,9 +158,22 @@ func (s *server) Connect() error {
 	return nil
 }
 
-func (s *server) Disconnect() error {
+func (s *Server) Disconnect() error {
 	if !s.isConnected {
 		return nil
+	}
+
+	log.Debug("shutting down server")
+
+	defer func() {
+		if s.AfterShutdown != nil {
+			s.AfterShutdown()
+		}
+		s.isConnected = false
+	}()
+
+	if s.BeforeShutdown != nil {
+		s.BeforeShutdown()
 	}
 
 	for k, pub := range s.publishers {
@@ -161,4 +183,8 @@ func (s *server) Disconnect() error {
 	s.jobSubscriber.Unsubscribe()
 
 	return s.broker.Disconnect()
+}
+
+func (s *Server) Close() error {
+	return s.Disconnect()
 }

@@ -3,9 +3,11 @@ package server
 import "io"
 
 type Options struct {
-	stdout     io.WriteCloser
-	stderr     io.WriteCloser
-	numworkers int
+	stdout       io.WriteCloser
+	stderr       io.WriteCloser
+	jobQueueName string
+	numworkers   int
+	gpuaffinity  int
 }
 
 type Option func(*Options)
@@ -25,5 +27,17 @@ func Stderr(s io.WriteCloser) Option {
 func NumWorkers(n int) Option {
 	return func(o *Options) {
 		o.numworkers = n
+	}
+}
+
+func GPUAffinity(n int) Option {
+	return func(o *Options) {
+		o.gpuaffinity = n
+	}
+}
+
+func JobQueueName(s string) Option {
+	return func(o *Options) {
+		o.jobQueueName = s
 	}
 }
