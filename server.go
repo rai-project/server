@@ -13,6 +13,7 @@ import (
 	"github.com/rai-project/broker"
 	"github.com/rai-project/broker/sqs"
 	"github.com/rai-project/config"
+	"github.com/rai-project/docker"
 	"github.com/rai-project/model"
 	nvidiasmi "github.com/rai-project/nvidia-smi"
 	"github.com/rai-project/pubsub"
@@ -93,6 +94,8 @@ func New(opts ...Option) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	go docker.PeriodicCleanupDeadContainers()
 
 	return &Server{
 		ID:          id,
