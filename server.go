@@ -86,8 +86,8 @@ func New(opts ...Option) (*Server, error) {
 	// Create an AWS session
 	awsSession, err := aws.NewSession(
 		aws.Region(aws.AWSRegionUSEast1),
-		aws.EncryptedAccessKey(aws.Config.AccessKey),
-		aws.EncryptedSecretKey(aws.Config.SecretKey),
+		aws.AccessKey(aws.Config.AccessKey),
+		aws.SecretKey(aws.Config.SecretKey),
 		aws.Sts(id),
 	)
 	if err != nil {
