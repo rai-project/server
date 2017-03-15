@@ -184,20 +184,6 @@ func (w *WorkRequest) Start() error {
 	}
 	w.container = container
 
-	// exec, err := docker.NewExecutionFromString(container, "mkdir -p "+srcDir)
-	// if err != nil {
-	// 	w.publishStderr(color.RedString("✱ Unable create `mkdir -p " + srcDir + "` command"))
-	// 	log.WithError(err).WithField("cmd", "mkdir -p "+srcDir).Error("unable to create mkdir -p " + srcDir + " command")
-	// 	return err
-	// }
-	// exec.Stderr = w.stderr
-	// exec.Stdout = w.stdout
-	// if err := exec.Run(); err != nil {
-	// 	w.publishStderr(color.RedString("✱ Unable create " + srcDir))
-	// 	log.WithError(err).WithField("cmd", "mkdir -p "+srcDir).Error("unable to create " + srcDir + " directory")
-	// 	return err
-	// }
-
 	if err := container.CopyToContainer(srcDir, bytes.NewBuffer(buf.Bytes())); err != nil {
 		w.publishStderr(color.RedString("✱ Unable to copy your data to the container directory " + srcDir + " ."))
 		log.WithError(err).WithField("dir", srcDir).Error("unable to upload user data to container")
