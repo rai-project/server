@@ -184,6 +184,14 @@ func (w *WorkRequest) Start() error {
 	}
 	w.container = container
 
+	w.publishStdout(color.YellowString("✱ Starting container."))
+
+	if err := container.Start(); err != nil {
+		w.publishStderr(color.RedString("✱ Unable to start " + imageName + " container."))
+		log.WithError(err).WithField("image", imageName).Error("unable to start container")
+		return err
+	}
+
 	if err := container.CopyToContainer(srcDir, bytes.NewBuffer(buf.Bytes())); err != nil {
 		w.publishStderr(color.RedString("✱ Unable to copy your data to the container directory " + srcDir + " ."))
 		log.WithError(err).WithField("dir", srcDir).Error("unable to upload user data to container")
@@ -225,14 +233,6 @@ func (w *WorkRequest) Start() error {
 				". The data will be present for only a short duration of time.",
 		))
 	}()
-
-	w.publishStdout(color.YellowString("✱ Starting container."))
-
-	if err := container.Start(); err != nil {
-		w.publishStderr(color.RedString("✱ Unable to start " + imageName + " container."))
-		log.WithError(err).WithField("image", imageName).Error("unable to start container")
-		return err
-	}
 
 	for _, cmd := range buildSpec.Commands.Build {
 		exec, err := docker.NewExecutionFromString(container, cmd)
