@@ -259,9 +259,9 @@ func (w *WorkRequest) Start() error {
 	return nil
 }
 
-func (w *WorkRequest) Stop() error {
+func (w *WorkRequest) Close() error {
 	if w.container != nil {
-		w.container.Stop()
+		w.container.Close()
 	}
 
 	if w.docker != nil {

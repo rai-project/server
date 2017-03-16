@@ -42,12 +42,14 @@ func (w *Worker) Start() {
 
 			select {
 			case work := <-w.Work:
-				// Receive a work request.
-				fmt.Printf("worker%v: Received work request\n", w.ID)
-				if err := work.Start(); err != nil {
-					continue
-				}
-				work.Stop()
+				func(w *WorkRequest) {
+					defer work.Close()
+					// Receive a work request.
+					fmt.Printf("worker%v: Received work request\n", w.ID)
+					if err := work.Start(); err != nil {
+						return
+					}
+				}(work)
 			case <-w.QuitChan:
 				// We have been asked to stop.
 				fmt.Printf("worker%d stopping\n", w.ID)
