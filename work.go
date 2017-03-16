@@ -168,6 +168,7 @@ func (w *WorkRequest) Start() error {
 	containerOpts := []docker.ContainerOption{
 		docker.AddVolume(srcDir),
 		docker.AddVolume(buildDir),
+		docker.WorkingDirectory(buildDir),
 	}
 	if buildSpec.Resources.GPUs >= 1 {
 		if buildSpec.Resources.GPUs > 1 {
