@@ -169,6 +169,8 @@ func (w *WorkRequest) Start() error {
 		docker.AddVolume(srcDir),
 		docker.AddVolume(buildDir),
 		docker.WorkingDirectory(buildDir),
+		docker.Shell([]string{"/bin/bash"}),
+		docker.Entrypoint([]string{}),
 	}
 	if buildSpec.Resources.GPUs >= 1 {
 		if buildSpec.Resources.GPUs > 1 {
