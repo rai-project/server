@@ -211,7 +211,7 @@ func (w *WorkRequest) Start() error {
 			return
 		}
 
-		uploadKey := opts.clientUploadDestinationDirectory + "/build-" + w.ID + ".tar." + archive.Config.CompressionFormatString
+		uploadKey := opts.clientUploadDestinationDirectory + "/build-" + w.ID + ".tar." + archive.Extension()
 		key, err := w.store.UploadFrom(
 			r,
 			uploadKey,
