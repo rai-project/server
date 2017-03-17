@@ -166,6 +166,8 @@ func (w *WorkRequest) Start() error {
 	buildDir := w.serverOptions.containerBuildDirectory
 
 	containerOpts := []docker.ContainerOption{
+		docker.Image(imageName),
+		docker.AddEnv("IMAGE_NAME", imageName),
 		docker.AddVolume(srcDir),
 		docker.AddVolume(buildDir),
 		docker.WorkingDirectory(buildDir),
