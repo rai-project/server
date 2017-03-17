@@ -7,24 +7,32 @@ import (
 )
 
 type serverConfig struct {
-	ClientAppName                    string `json:"client_app_name" config:"client.app_name" default:"rai"`
-	ClientUploadBucketName           string `json:"upload_bucket" config:"client.upload_bucket" default:"files.rai-project.com"`
-	ClientUploadDestinationDirectory string `json:"upload_destination_directory" config:"client.upload_destination_directory" default:"userdata"`
+	ClientAppName                    string        `json:"client_app_name" config:"client.app_name" default:"rai"`
+	ClientUploadBucketName           string        `json:"upload_bucket" config:"client.upload_bucket" default:"files.rai-project.com"`
+	ClientUploadDestinationDirectory string        `json:"upload_destination_directory" config:"client.upload_destination_directory" default:"userdata"`
+	done                             chan struct{} `json:"-" config:"-"`
 }
 
 var (
-	Config = &serverConfig{}
+	Config = &serverConfig{
+		done: make(chan struct{}),
+	}
 )
 
 func (serverConfig) ConfigName() string {
 	return "Server"
 }
 
-func (serverConfig) SetDefaults() {
+func (a *serverConfig) SetDefaults() {
+	vipertags.SetDefaults(a)
 }
 
 func (a *serverConfig) Read() {
 	vipertags.Fill(a)
+}
+
+func (c serverConfig) Wait() {
+	<-c.done
 }
 
 func (c serverConfig) String() string {
