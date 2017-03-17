@@ -171,6 +171,8 @@ func (w *WorkRequest) Start() error {
 		docker.WorkingDirectory(buildDir),
 		docker.Shell([]string{"/bin/bash"}),
 		docker.Entrypoint([]string{}),
+		docker.AddEnv("IMAGE_NAME", imageName),
+		docker.Image(imageName),
 	}
 	if buildSpec.Resources.GPUs >= 1 {
 		if buildSpec.Resources.GPUs > 1 {
