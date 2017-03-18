@@ -28,6 +28,7 @@ func (a *serverConfig) SetDefaults() {
 }
 
 func (a *serverConfig) Read() {
+	defer close(a.done)
 	vipertags.Fill(a)
 }
 
