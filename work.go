@@ -174,10 +174,10 @@ func (w *WorkRequest) Start() error {
 		docker.Shell([]string{"/bin/bash"}),
 		docker.Entrypoint([]string{}),
 	}
-	if buildSpec.Resources.GPUs >= 1 {
-		if buildSpec.Resources.GPUs > 1 {
-			w.publishStderr(color.RedString("✱ Only one gpu can be currently supported for a job submission."))
-			buildSpec.Resources.GPUs = 1
+	if buildSpec.Resources.GPU != (model.GPUResources{}) {
+		if buildSpec.Resources.GPU.Count > 1 {
+			w.publishStderr(color.RedString("✱ Only one gpu can be currently supported for a job submission. Setting the number of gpus to 1."))
+			buildSpec.Resources.GPU.Count = 1
 		}
 		containerOpts = append(containerOpts, docker.CUDADevice(0))
 	}
