@@ -81,7 +81,6 @@ func NewWorkerRequest(job model.JobRequest, serverOpts Options) (*WorkRequest, e
 		aws.Region(aws.AWSRegionUSEast1),
 		aws.AccessKey(aws.Config.AccessKey),
 		aws.SecretKey(aws.Config.SecretKey),
-		aws.Sts("server-"+job.ID),
 	)
 	if err != nil {
 		return nil, err

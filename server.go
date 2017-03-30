@@ -89,7 +89,6 @@ func New(opts ...Option) (*Server, error) {
 		aws.Region(aws.AWSRegionUSEast1),
 		aws.AccessKey(aws.Config.AccessKey),
 		aws.SecretKey(aws.Config.SecretKey),
-		aws.Sts(id),
 	)
 	if err != nil {
 		return nil, err
