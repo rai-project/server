@@ -258,7 +258,7 @@ func (w *WorkRequest) Start() error {
 			return err
 		}
 	}
-	log.WithField("id", w.ID).WithField("image", imageName).Debug("finished ")
+	//log.WithField("id", w.ID).WithField("image", imageName).Debug("finished ")
 
 	return nil
 }
