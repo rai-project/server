@@ -2,6 +2,7 @@ package server
 
 import (
 	"io"
+	"strings"
 	"time"
 
 	"bytes"
@@ -137,6 +138,12 @@ func (w *WorkRequest) Start() error {
 		w.publisher.End(w.publishChannel)
 	}()
 
+	defer func() {
+		if r := recover(); r != nil {
+			w.publishStdout(color.RedString("✱ Server crashed while processing your request."))
+		}
+	}()
+
 	w.publishStdout(color.YellowString("✱ Server has accepted your job submission and started to configure the container."))
 
 	w.publishStdout(color.YellowString("✱ Downloading your code."))
@@ -239,6 +246,10 @@ func (w *WorkRequest) Start() error {
 	}()
 
 	for _, cmd := range buildSpec.Commands.Build {
+		cmd = strings.TrimSpace(cmd)
+		if cmd == "" {
+			continue
+		}
 		exec, err := docker.NewExecutionFromString(container, cmd)
 		if err != nil {
 			w.publishStderr(color.RedString("✱ Unable create run command " + cmd + ". Make sure that the input is a valid shell command."))
