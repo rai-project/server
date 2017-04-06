@@ -45,7 +45,7 @@ func (w *Worker) Start() {
 				func(w *WorkRequest) {
 					defer work.Close()
 					// Receive a work request.
-					fmt.Printf("worker%v: Received work request\n", w.ID)
+					log.Debugf("worker%v: Received work request\n", w.ID)
 					if err := work.Start(); err != nil {
 						return
 					}
@@ -85,12 +85,12 @@ func StartDispatcher(nworkers int) *Dispatcher {
 			select {
 			case work := <-workQueue:
 				wg.Add(1)
-				fmt.Println("queue work requeust")
+				log.Debug("queue work requeust")
 				worker := <-workerQueue
 				go func() {
 					defer wg.Done()
 
-					fmt.Println("Dispatching work request")
+					log.Debug("Dispatching work request")
 					worker <- work
 				}()
 			}
