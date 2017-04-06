@@ -55,9 +55,6 @@ func New(opts ...Option) (*Server, error) {
 	if nvidiasmi.HasGPU {
 		nworkers = nvidiasmi.GPUCount
 	}
-	if config.IsDebug {
-		nworkers = 1
-	}
 
 	stdout, stderr := colorable.NewColorableStdout(), colorable.NewColorableStderr()
 	if !config.App.Color {
