@@ -186,6 +186,7 @@ func (w *WorkRequest) Start() error {
 			buildSpec.Resources.GPU.Count = 1
 		}
 		containerOpts = append(containerOpts, docker.CUDADevice(0))
+		containerOpts = append(containerOpts, docker.NvidiaVolume(""))
 	}
 	container, err := docker.NewContainer(w.docker, containerOpts...)
 	if err != nil {
