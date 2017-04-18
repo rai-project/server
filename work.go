@@ -97,6 +97,7 @@ func NewWorkerRequest(job model.JobRequest, serverOpts Options) (*WorkRequest, e
 	d, err := docker.NewClient(
 		docker.Stdout(stdout),
 		docker.Stderr(stderr),
+		docker.Stdin(nil),
 	)
 	if err != nil {
 		return nil, err
