@@ -158,11 +158,13 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 
 	tmpDir, err := ioutil.TempDir(config.App.TempDir, "buildImage")
 	if err != nil {
+		w.publishStderr(color.RedString("✱ Server was unable to create a temporary directory."))
 		return err
 	}
 	defer os.RemoveAll(tmpDir)
 
 	if err := archive.Unzip(uploadedReader, tmpDir); err != nil {
+		w.publishStderr(color.RedString("✱ Unable to unzip your folder " + err.Error() + "."))
 		return err
 	}
 
@@ -183,6 +185,7 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 	}
 	defer f.Close()
 
+	w.publishStdout(color.YellowString("✱ Server is starting to build image."))
 	if err := w.docker.ImageBuild(spec.ImageName, f); err != nil {
 		w.publishStderr(color.RedString("✱ Unable to build dockerfile."))
 		return err
@@ -221,6 +224,8 @@ func (w *WorkRequest) Start() error {
 	if err != nil {
 		w.publishStderr(color.RedString("✱ Unable to create image " + buildSpec.Commands.BuildImage.ImageName + "."))
 		return err
+	} else {
+		buildSpec.RAI.ContainerImage = buildSpec.Commands.BuildImage.ImageName
 	}
 
 	imageName := buildSpec.RAI.ContainerImage
@@ -295,7 +300,7 @@ func (w *WorkRequest) Start() error {
 			return
 		}
 
-		uploadKey := opts.clientUploadDestinationDirectory + "/build-" + w.ID + archive.Extension()
+		uploadKey := opts.clientUploadDestinationDirectory + "/build-" + w.ID + "." + archive.Extension()
 		key, err := w.store.UploadFrom(
 			r,
 			uploadKey,
@@ -326,9 +331,11 @@ func (w *WorkRequest) Start() error {
 		if cmd == "" {
 			continue
 		}
-		if !strings.HasPrefix(cmd, "/bin/sh") && !strings.HasPrefix(cmd, "/bin/sh") {
-			cmd = "/bin/bash -c " + cmd
-		}
+		/*
+			if !strings.HasPrefix(cmd, "/bin/sh") && !strings.HasPrefix(cmd, "/bin/sh") {
+				cmd = "/bin/sh -c " + cmd
+			}
+		*/
 		exec, err := docker.NewExecutionFromString(container, cmd)
 		if err != nil {
 			w.publishStderr(color.RedString("✱ Unable create run command " + cmd + ". Make sure that the input is a valid shell command."))
