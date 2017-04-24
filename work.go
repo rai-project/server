@@ -1,22 +1,31 @@
 package server
 
 import (
+	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"bytes"
 
+	"github.com/Unknwon/com"
 	azaws "github.com/aws/aws-sdk-go/aws"
 	"github.com/fatih/color"
+	"github.com/pkg/errors"
 	"github.com/rai-project/archive"
 	"github.com/rai-project/aws"
+	"github.com/rai-project/config"
 	"github.com/rai-project/docker"
 	"github.com/rai-project/model"
+	nvidiasmi "github.com/rai-project/nvidia-smi"
 	"github.com/rai-project/pubsub"
 	"github.com/rai-project/pubsub/redis"
 	"github.com/rai-project/store"
 	"github.com/rai-project/store/s3"
+	"github.com/rai-project/uuid"
 )
 
 type WorkRequest struct {
@@ -117,6 +126,7 @@ func NewWorkerRequest(job model.JobRequest, serverOpts Options) (*WorkRequest, e
 
 func (w *WorkRequest) publishStdout(s string) error {
 	return w.publisher.Publish(w.publishChannel, model.JobResponse{
+		ID:        uuid.NewV4(),
 		Kind:      model.StdoutResponse,
 		Body:      []byte(s),
 		CreatedAt: time.Now(),
@@ -125,24 +135,75 @@ func (w *WorkRequest) publishStdout(s string) error {
 
 func (w *WorkRequest) publishStderr(s string) error {
 	return w.publisher.Publish(w.publishChannel, model.JobResponse{
+		ID:        uuid.NewV4(),
 		Kind:      model.StderrResponse,
 		Body:      []byte(s),
 		CreatedAt: time.Now(),
 	})
 }
 
+func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedReader io.Reader) error {
+	if spec == nil {
+		return nil
+	}
+
+	if spec.ImageName == "" {
+		spec.ImageName = uuid.NewV4()
+	}
+
+	if w.docker.HasImage(spec.ImageName) && spec.NoCache == false {
+		w.publishStdout(color.YellowString("✱ Using cached version of the docker image. Set no_cache=true to disable cache."))
+		return nil
+	}
+
+	tmpDir, err := ioutil.TempDir(config.App.TempDir, "buildImage")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(tmpDir)
+
+	if err := archive.Unzip(uploadedReader, tmpDir); err != nil {
+		return err
+	}
+
+	if spec.Dockerfile == "" {
+		spec.Dockerfile = "Dockerfile"
+	}
+
+	dockerfile := filepath.Join(tmpDir, spec.Dockerfile)
+	if !com.IsFile(dockerfile) {
+		w.publishStderr(color.RedString("✱ Unable to find Dockerfile. Make sure the path is specified correctly."))
+		return errors.Errorf("file %v not found", dockerfile)
+	}
+
+	f, err := os.Open(dockerfile)
+	if err != nil {
+		w.publishStderr(color.RedString("✱ Unable to open Dockerfile."))
+		return err
+	}
+	defer f.Close()
+
+	if err := w.docker.ImageBuild(spec.ImageName, f); err != nil {
+		w.publishStderr(color.RedString("✱ Unable to build dockerfile."))
+		return err
+	}
+
+	w.publishStdout(color.YellowString("✱ Server has build your docker image."))
+	return nil
+}
+
 func (w *WorkRequest) Start() error {
 	buildSpec := w.buildSpec
 
 	defer func() {
-		w.publishStdout(color.GreenString("✱ Server has ended your request."))
-		w.publisher.End(w.publishChannel)
+		if r := recover(); r != nil {
+			w.publishStderr(color.RedString("✱ Server crashed while processing your request."))
+		}
 	}()
 
 	defer func() {
-		if r := recover(); r != nil {
-			w.publishStdout(color.RedString("✱ Server crashed while processing your request."))
-		}
+		w.publishStdout(color.GreenString("✱ Server has ended your request."))
+		w.publisher.End(w.publishChannel)
 	}()
 
 	w.publishStdout(color.YellowString("✱ Server has accepted your job submission and started to configure the container."))
@@ -151,15 +212,21 @@ func (w *WorkRequest) Start() error {
 
 	buf := new(azaws.WriteAtBuffer)
 	if err := w.store.DownloadTo(buf, w.UploadKey); err != nil {
-		w.publishStdout(color.RedString("✱ Failed to download your code."))
+		w.publishStderr(color.RedString("✱ Failed to download your code."))
 		log.WithError(err).WithField("key", w.UploadKey).Error("failed to download user code from store")
+		return err
+	}
+
+	err := w.buildImage(buildSpec.Commands.BuildImage, bytes.NewBuffer(buf.Bytes()))
+	if err != nil {
+		w.publishStderr(color.RedString("✱ Unable to create image " + buildSpec.Commands.BuildImage.ImageName + "."))
 		return err
 	}
 
 	imageName := buildSpec.RAI.ContainerImage
 	w.publishStdout(color.YellowString("✱ Using " + imageName + " as container image."))
 
-	if !w.docker.HasImage(imageName) {
+	if buildSpec.Commands.BuildImage == nil && !w.docker.HasImage(imageName) {
 		log.WithField("id", w.ID).WithField("image", imageName).Debug("image not found")
 		err := w.docker.PullImage(imageName)
 		if err != nil {
@@ -181,12 +248,19 @@ func (w *WorkRequest) Start() error {
 		docker.Shell([]string{"/bin/bash"}),
 		docker.Entrypoint([]string{}),
 	}
-	if buildSpec.Resources.GPU != (model.GPUResources{}) {
-		if buildSpec.Resources.GPU.Count > 1 {
-			w.publishStderr(color.RedString("✱ Only one gpu can be currently supported for a job submission. Setting the number of gpus to 1."))
-			buildSpec.Resources.GPU.Count = 1
+	if buildSpec.Resources.Network {
+		containerOpts = append(containerOpts, docker.NetworkDisabled(!buildSpec.Resources.Network))
+	}
+	if buildSpec.Resources.GPU != nil {
+		if buildSpec.Resources.GPU.Count > len(nvidiasmi.Info.GPUS) {
+			w.publishStderr(color.RedString(
+				fmt.Sprintf("✱ The maximum number of gpus available on the machine is %d. You're launch will utilitize those gpus.",
+					len(nvidiasmi.Info.GPUS))))
+			buildSpec.Resources.GPU.Count = len(nvidiasmi.Info.GPUS)
 		}
-		containerOpts = append(containerOpts, docker.CUDADevice(0))
+		for ii := 0; ii < buildSpec.Resources.GPU.Count; ii++ {
+			containerOpts = append(containerOpts, docker.CUDADevice(ii))
+		}
 		containerOpts = append(containerOpts, docker.NvidiaVolume(""))
 	}
 	container, err := docker.NewContainer(w.docker, containerOpts...)
@@ -221,7 +295,7 @@ func (w *WorkRequest) Start() error {
 			return
 		}
 
-		uploadKey := opts.clientUploadDestinationDirectory + "/build-" + w.ID + ".tar." + archive.Extension()
+		uploadKey := opts.clientUploadDestinationDirectory + "/build-" + w.ID + archive.Extension()
 		key, err := w.store.UploadFrom(
 			r,
 			uploadKey,
@@ -242,7 +316,7 @@ func (w *WorkRequest) Start() error {
 			return
 		}
 		w.publishStdout(color.GreenString(
-			"✱ ✱ The build folder has been uploaded to " + key +
+			"✱ The build folder has been uploaded to " + key +
 				". The data will be present for only a short duration of time.",
 		))
 	}()
@@ -251,6 +325,9 @@ func (w *WorkRequest) Start() error {
 		cmd = strings.TrimSpace(cmd)
 		if cmd == "" {
 			continue
+		}
+		if !strings.HasPrefix(cmd, "/bin/sh") && !strings.HasPrefix(cmd, "/bin/sh") {
+			cmd = "/bin/bash -c " + cmd
 		}
 		exec, err := docker.NewExecutionFromString(container, cmd)
 		if err != nil {
