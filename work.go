@@ -224,7 +224,7 @@ func (w *WorkRequest) Start() error {
 	if err != nil {
 		w.publishStderr(color.RedString("✱ Unable to create image " + buildSpec.Commands.BuildImage.ImageName + "."))
 		return err
-	} else {
+	} else if buildSpec.Commands.BuildImage != nil {
 		buildSpec.RAI.ContainerImage = buildSpec.Commands.BuildImage.ImageName
 	}
 
