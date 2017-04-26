@@ -151,6 +151,12 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 		spec.ImageName = uuid.NewV4()
 	}
 
+	appName := strings.TrimSuffix(config.App.Name, "d")
+	if strings.HasPrefix(spec.ImageName, appName) {
+		w.publishStderr(color.RedString("✱ Docker image name cannot start with " + appName + "/ . Choose a different name."))
+		return errors.New("docker image namespace")
+	}
+
 	if w.docker.HasImage(spec.ImageName) && spec.NoCache == false {
 		w.publishStdout(color.YellowString("✱ Using cached version of the docker image. Set no_cache=true to disable cache."))
 		return nil
