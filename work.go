@@ -153,7 +153,7 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 
 	appName := strings.TrimSuffix(config.App.Name, "d")
 	if strings.HasPrefix(spec.ImageName, appName) {
-		w.publishStderr(color.RedString("✱ Docker image name cannot start with " + appName + "/ . Choose a different name."))
+		w.publishStderr(color.RedString("✱ Docker image name cannot start with " + appName + "/ . Choose a different prefix."))
 		return errors.New("docker image namespace")
 	}
 
@@ -245,6 +245,10 @@ func (w *WorkRequest) Start() error {
 			log.WithError(err).WithField("image", imageName).Error("unable to pull image")
 			return err
 		}
+	}
+	// there is nothing to build...
+	if len(buildSpec.Commands.Build) == 0 {
+		return nil
 	}
 
 	srcDir := w.serverOptions.containerSourceDirectory
