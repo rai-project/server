@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"io"
+	"time"
 )
 
 type Options struct {
@@ -17,6 +18,7 @@ type Options struct {
 	clientUploadBucketName           string
 	clientUploadDestinationDirectory string
 	clientAppName                    string
+	timelimit                        time.Duration
 }
 
 type Option func(*Options)
@@ -83,5 +85,11 @@ func ClientUploadDestinationDirectory(s string) Option {
 func ClientAppName(s string) Option {
 	return func(o *Options) {
 		o.clientAppName = s
+	}
+}
+
+func TimeLimit(d time.Duration) Option {
+	return func(o *Options) {
+		o.timelimit = d
 	}
 }
