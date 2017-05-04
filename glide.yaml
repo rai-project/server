@@ -3,8 +3,10 @@ import:
 - package: github.com/BenLubar/memoize
 - package: github.com/Sirupsen/logrus
   version: ~0.11.5
+- package: github.com/Unknwon/com
+  version: ~1.0.0
 - package: github.com/aws/aws-sdk-go
-  version: ~1.8.8
+  version: ~1.8.19
   subpackages:
   - aws
   - aws/session
@@ -14,6 +16,8 @@ import:
   version: ~2.3.0
 - package: github.com/mattn/go-colorable
   version: ~0.0.7
+- package: github.com/pkg/errors
+  version: ~0.8.0
 - package: github.com/rai-project/archive
 - package: github.com/rai-project/auth
 - package: github.com/rai-project/aws
