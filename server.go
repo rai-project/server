@@ -74,7 +74,7 @@ func New(opts ...Option) (*Server, error) {
 		clientUploadDestinationDirectory: Config.ClientUploadDestinationDirectory,
 		clientAppName:                    Config.ClientAppName,
 		context:                          context.Background(),
-		timelimit:                        time.Hour,
+		timelimit:                        10 * time.Minute,
 	}
 
 	for _, o := range opts {
