@@ -2,11 +2,11 @@ package: github.com/rai-project/server
 import:
 - package: github.com/BenLubar/memoize
 - package: github.com/sirupsen/logrus
-  version: ~0.11.5
+  version: ~1.0.0
 - package: github.com/Sirupsen/logrus
   repo: git@github.com:/sirupsen/logrus
   vcs: git
-  version: ~0.11.5
+  version: ~1.0.0
 - package: github.com/Unknwon/com
   version: ~1.0.0
 - package: github.com/aws/aws-sdk-go
