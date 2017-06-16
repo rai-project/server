@@ -43,6 +43,5 @@ import:
 - package: github.com/rai-project/vipertags
 testImport:
 - package: github.com/stretchr/testify
-  version: ~1.1.4
   subpackages:
   - assert
