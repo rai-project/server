@@ -1,21 +1,19 @@
 package: github.com/rai-project/server
 import:
 - package: github.com/BenLubar/memoize
-- package: github.com/sirupsen/logrus
-  version: ^1.0.0
 - package: github.com/Unknwon/com
-  version: ^1.0.0
+  version: ~1.0.0
 - package: github.com/aws/aws-sdk-go
-  version: ~1.10.18
+  version: ~1.10.20
   subpackages:
   - aws
   - aws/session
 - package: github.com/fatih/color
-  version: master
+  version: ~1.5.0
 - package: github.com/k0kubun/pp
   version: ~2.3.0
 - package: github.com/mattn/go-colorable
-  version: master
+  version: ~0.0.9
 - package: github.com/pkg/errors
   version: ~0.8.0
 - package: github.com/rai-project/archive
@@ -41,7 +39,10 @@ import:
 - package: github.com/rai-project/utils
 - package: github.com/rai-project/uuid
 - package: github.com/rai-project/vipertags
+- package: github.com/sirupsen/logrus
+  version: ~1.0.2
 testImport:
 - package: github.com/stretchr/testify
+  version: ~1.1.4
   subpackages:
   - assert
