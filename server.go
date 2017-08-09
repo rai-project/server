@@ -118,11 +118,11 @@ func (s *Server) jobHandler(pub broker.Publication) error {
 		return err
 	}
 
-	if jobRequest.PublishQ() {
+	if jobRequest.PushQ() {
 		buildImage := jobRequest.BuildSpecification.Commands.BuildImage
-		publish := buildImage.Publish
-		if publish.ImageName == "" {
-			publish.ImageName = buildImage.ImageName
+		push := buildImage.push
+		if push.ImageName == "" {
+			push.ImageName = buildImage.ImageName
 		}
 	}
 
