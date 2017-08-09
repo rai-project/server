@@ -105,17 +105,25 @@ func New(opts ...Option) (*Server, error) {
 }
 
 func (s *Server) jobHandler(pub broker.Publication) error {
-	var jobRequest model.JobRequest
+	jobRequest := new(model.JobRequest)
 
 	msg := pub.Message()
 	if msg == nil {
 		return errors.New("recieved a nil message")
 	}
 	body := msg.Body
-	err := s.serializer.Unmarshal(body, &jobRequest)
+	err := s.serializer.Unmarshal(body, jobRequest)
 	if err != nil {
 		log.WithError(err).WithField("id", msg.ID).Error("failed to parse job request")
 		return err
+	}
+
+	if jobRequest.PublishQ() {
+		buildImage := jobRequest.BuildSpecification.Commands.BuildImage
+		publish := buildImage.Publish
+		if publish.ImageName == "" {
+			publish.ImageName = buildImage.ImageName
+		}
 	}
 
 	work, err := NewWorkerRequest(jobRequest, s.options)

@@ -29,7 +29,7 @@ import (
 )
 
 type WorkRequest struct {
-	model.JobRequest
+	*model.JobRequest
 	publisher      pubsub.Publisher
 	publishChannel string
 	pubsubConn     pubsub.Connection
@@ -63,7 +63,7 @@ var (
 	}
 )
 
-func NewWorkerRequest(job model.JobRequest, serverOpts Options) (*WorkRequest, error) {
+func NewWorkerRequest(job *model.JobRequest, serverOpts Options) (*WorkRequest, error) {
 	publishChannel := serverOpts.clientAppName + "/log-" + job.ID
 
 	conn, err := redis.New()
@@ -152,7 +152,7 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 	}
 
 	appName := strings.TrimSuffix(config.App.Name, "d")
-	if strings.HasPrefix(spec.ImageName, appName) {
+	if strings.HasPrefix(spec.ImageName, appName) || strings.HasPrefix(spec.ImageName, config.App.Name) {
 		w.publishStderr(color.RedString("✱ Docker image name cannot start with " + appName + "/ . Choose a different prefix."))
 		return errors.New("docker image namespace")
 	}
@@ -198,6 +198,10 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 	}
 
 	w.publishStdout(color.YellowString("✱ Server has build your docker image."))
+	return nil
+}
+
+func (w *WorkRequest) publishImage(spec *model.BuildImageSpecification, uploadedReader io.Reader) error {
 	return nil
 }
 
