@@ -197,7 +197,7 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 		return err
 	}
 
-	w.publishStdout(color.YellowString("✱ Server has build your docker image."))
+	w.publishStdout(color.YellowString("✱ Server has build your " + pushSpec.ImageName + " docker image."))
 	return nil
 }
 
@@ -220,7 +220,20 @@ func (w *WorkRequest) pushImage(buildSpec *model.BuildImageSpecification, upload
 	}
 	defer reader.Close()
 
-	io.Copy(w.stdout, reader)
+	w.publishStdout(color.YellowString("✱ Server has pushed your " + pushSpec.ImageName + "docker image."))
+
+	// Copy output to stdout
+	for {
+		buf := make([]byte, bytes.MinRead)
+		n, err := reader.Read(buf)
+		if err != nil {
+			return nil
+		}
+		if n > 0 {
+			w.publishStdout(string(buf[:n]))
+		}
+	}
+
 	return nil
 }
 
