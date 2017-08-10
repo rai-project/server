@@ -120,7 +120,7 @@ func (s *Server) jobHandler(pub broker.Publication) error {
 
 	if jobRequest.PushQ() {
 		buildImage := jobRequest.BuildSpecification.Commands.BuildImage
-		push := buildImage.push
+		push := buildImage.Push
 		if push.ImageName == "" {
 			push.ImageName = buildImage.ImageName
 		}
