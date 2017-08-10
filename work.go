@@ -201,7 +201,26 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 	return nil
 }
 
-func (w *WorkRequest) publishImage(spec *model.BuildImageSpecification, uploadedReader io.Reader) error {
+func (w *WorkRequest) pushImage(buildSpec *model.BuildImageSpecification, uploadedReader io.Reader) error {
+	if !spec.PushQ() {
+		return nil
+	}
+
+	pushSpec := buildSpec.Push
+
+	if !w.docker.HasImage(pushSpec.ImageName) {
+		w.publishStdout(color.YellowString("✱ Unable to find " + pushSpec.ImageName +
+			". Make sure you have built the image with the same name as the one being published."))
+		return errors.Errorf("image %s found", pushSpec.ImageName)
+	}
+
+	reader, err := w.docker.ImagePush(pushSpec.ImageName, pushSpec)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	io.Copy(w.stdout, reader)
 	return nil
 }
 
@@ -236,6 +255,12 @@ func (w *WorkRequest) Start() error {
 		return err
 	} else if buildSpec.Commands.BuildImage != nil {
 		buildSpec.RAI.ContainerImage = buildSpec.Commands.BuildImage.ImageName
+	}
+
+	err := w.pushImage(buildSpec.Commands.BuildImage, bytes.NewBuffer(buf.Bytes()))
+	if err != nil {
+		w.publishStderr(color.RedString("✱ Unable to push image " + buildSpec.Commands.BuildImage.Push.Im + "."))
+		return err
 	}
 
 	imageName := buildSpec.RAI.ContainerImage
