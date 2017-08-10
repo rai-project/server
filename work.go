@@ -197,7 +197,7 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 		return err
 	}
 
-	w.publishStdout(color.YellowString("✱ Server has build your " + pushSpec.ImageName + " docker image."))
+	w.publishStdout(color.YellowString("✱ Server has build your " + spec.ImageName + " docker image."))
 	return nil
 }
 
