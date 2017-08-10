@@ -197,7 +197,7 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 		return err
 	}
 
-	w.publishStdout(color.YellowString("✱ Server has build your " + pushSpec.ImageName + " docker image."))
+	w.publishStdout(color.YellowString("✱ Server has build your " + spec.ImageName + " docker image."))
 	return nil
 }
 
@@ -213,25 +213,11 @@ func (w *WorkRequest) pushImage(buildSpec *model.BuildImageSpecification, upload
 			". Make sure you have built the image with the same name as the one being published."))
 		return errors.Errorf("image %s found", pushSpec.ImageName)
 	}
-
-	reader, err := w.docker.ImagePush(pushSpec.ImageName, *pushSpec)
+	err := w.docker.ImagePush(pushSpec.ImageName, *pushSpec)
 	if err != nil {
-		return err
-	}
-	defer reader.Close()
-
-	w.publishStdout(color.YellowString("✱ Server has pushed your " + pushSpec.ImageName + "docker image."))
-
-	// Copy output to stdout
-	for {
-		buf := make([]byte, bytes.MinRead)
-		n, err := reader.Read(buf)
-		if err != nil {
-			return nil
-		}
-		if n > 0 {
-			w.publishStdout(string(buf[:n]))
-		}
+		w.publishStdout(color.YellowString("✱ Unable to push " + pushSpec.ImageName +
+			" to docker registry."))
+		return errors.Wrapf(err, "unable to push %s to docker registry", pushSpec.ImageName)
 	}
 
 	return nil
