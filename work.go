@@ -202,7 +202,7 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 }
 
 func (w *WorkRequest) pushImage(buildSpec *model.BuildImageSpecification, uploadedReader io.Reader) error {
-	if !spec.PushQ() {
+	if !buildSpec.PushQ() {
 		return nil
 	}
 
@@ -214,7 +214,7 @@ func (w *WorkRequest) pushImage(buildSpec *model.BuildImageSpecification, upload
 		return errors.Errorf("image %s found", pushSpec.ImageName)
 	}
 
-	reader, err := w.docker.ImagePush(pushSpec.ImageName, pushSpec)
+	reader, err := w.docker.ImagePush(pushSpec.ImageName, *pushSpec)
 	if err != nil {
 		return err
 	}
@@ -257,9 +257,9 @@ func (w *WorkRequest) Start() error {
 		buildSpec.RAI.ContainerImage = buildSpec.Commands.BuildImage.ImageName
 	}
 
-	err := w.pushImage(buildSpec.Commands.BuildImage, bytes.NewBuffer(buf.Bytes()))
+	err = w.pushImage(buildSpec.Commands.BuildImage, bytes.NewBuffer(buf.Bytes()))
 	if err != nil {
-		w.publishStderr(color.RedString("✱ Unable to push image " + buildSpec.Commands.BuildImage.Push.Im + "."))
+		w.publishStderr(color.RedString("✱ Unable to push image " + buildSpec.Commands.BuildImage.Push.ImageName + "."))
 		return err
 	}
 
