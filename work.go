@@ -184,7 +184,7 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 		return errors.Errorf("file %v not found", dockerfile)
 	}
 
-	f, err := arcive.Zip(tmpDir)
+	f, err := archive.Zip(tmpDir)
 	if err != nil {
 		w.publishStderr(color.RedString("✱ Unable to create archive of uploaded directory."))
 		return err
@@ -192,7 +192,7 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 	defer f.Close()
 
 	w.publishStdout(color.YellowString("✱ Server is starting to build image."))
-	if err := w.docker.ImageBuild(spec.ImageName, dockerfile, f); err != nil {
+	if err := w.docker.ImageBuild(spec.ImageName, spec.Dockerfile, f); err != nil {
 		w.publishStderr(color.RedString("✱ Unable to build dockerfile."))
 		return err
 	}
