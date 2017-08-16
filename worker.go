@@ -73,7 +73,7 @@ func StartDispatcher(nworkers int) *Dispatcher {
 
 	// Now, create all of our workers.
 	for i := 0; i < nworkers; i++ {
-		fmt.Println("Starting worker", i+1)
+		log.Debug("Starting worker", i+1)
 		worker := NewWorker(i+1, workerQueue)
 		worker.Start()
 
@@ -85,12 +85,12 @@ func StartDispatcher(nworkers int) *Dispatcher {
 			select {
 			case work := <-workQueue:
 				wg.Add(1)
-				log.Debug("queue work requeust")
+				log.WithField("id", work.ID).Debug("queue work request")
 				worker := <-workerQueue
 				go func() {
 					defer wg.Done()
 
-					log.Debug("Dispatching work request")
+					log.WithField("id", work.ID).Debug("dispatching work request")
 					worker <- work
 				}()
 			}
