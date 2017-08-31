@@ -2,7 +2,7 @@ package: github.com/rai-project/server
 import:
 - package: github.com/BenLubar/memoize
 - package: github.com/Unknwon/com
-  version: ~1.0.0
+  version: ^1.0.0
 - package: github.com/aws/aws-sdk-go
   version: ^1.10.35
   subpackages:
