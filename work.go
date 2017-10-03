@@ -301,10 +301,18 @@ func (w *WorkRequest) Start() error {
 					len(nvidiasmi.Info.GPUS))))
 			buildSpec.Resources.GPU.Count = len(nvidiasmi.Info.GPUS)
 		}
+		if buildSpec.Resources.GPU.Count < 0 {
+			w.publishStderr(color.RedString(
+				fmt.Sprintf("✱ The number of gpus should be a positive number, but got  %d.",
+					buildSpec.Resources.GPU.Count)))
+			buildSpec.Resources.GPU.Count = 0
+		}
 		for ii := 0; ii < buildSpec.Resources.GPU.Count; ii++ {
 			containerOpts = append(containerOpts, docker.CUDADevice(ii))
 		}
-		containerOpts = append(containerOpts, docker.NvidiaVolume(""))
+		if buildSpec.Resources.GPU.Count > 0 {
+			containerOpts = append(containerOpts, docker.NvidiaVolume(""))
+		}
 	}
 	container, err := docker.NewContainer(w.docker, containerOpts...)
 	if err != nil {
