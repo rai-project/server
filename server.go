@@ -137,6 +137,7 @@ func (s *Server) jobHandler(pub broker.Publication) error {
 
 func (s *Server) publishSubscribe() error {
 	brkr, err := sqs.New(
+		sqs.QueueName(s.options.jobQueueName),
 		broker.Serializer(json.New()),
 		sqs.Session(s.awsSession),
 	)
