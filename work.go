@@ -64,7 +64,7 @@ var (
 )
 
 func NewWorkerRequest(job *model.JobRequest, serverOpts Options) (*WorkRequest, error) {
-	publishChannel := serverOpts.clientAppName + "/log-" + job.ID
+	publishChannel := serverOpts.clientAppName + "/log-" + job.ID.String()
 
 	conn, err := redis.New()
 	if err != nil {
@@ -346,7 +346,7 @@ func (w *WorkRequest) Start() error {
 			return
 		}
 
-		uploadKey := opts.clientUploadDestinationDirectory + "/build-" + w.ID + "." + archive.Extension()
+		uploadKey := opts.clientUploadDestinationDirectory + "/build-" + w.ID.String() + "." + archive.Extension()
 		key, err := w.store.UploadFrom(
 			r,
 			uploadKey,
