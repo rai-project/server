@@ -136,6 +136,7 @@ func (s *Server) jobHandler(pub broker.Publication) error {
 }
 
 func (s *Server) publishSubscribe() error {
+	log.Debug("Server subscribed to ", s.options.jobQueueName, " queue")
 	brkr, err := sqs.New(
 		sqs.QueueName(s.options.jobQueueName),
 		broker.Serializer(json.New()),
@@ -144,7 +145,6 @@ func (s *Server) publishSubscribe() error {
 	if err != nil {
 		return err
 	}
-
 	subscriber, err := brkr.Subscribe(
 		"rai",
 		s.jobHandler,
