@@ -1,6 +1,8 @@
 package server
 
 import (
+	"runtime"
+
 	"github.com/k0kubun/pp"
 	"github.com/rai-project/config"
 	"github.com/rai-project/vipertags"
@@ -10,6 +12,7 @@ type serverConfig struct {
 	ClientAppName                    string        `json:"client_app_name" config:"client.app_name" default:"rai"`
 	ClientUploadBucketName           string        `json:"upload_bucket" config:"client.upload_bucket" default:"files.rai-project.com"`
 	ClientUploadDestinationDirectory string        `json:"upload_destination_directory" config:"client.upload_destination_directory" default:"userdata"`
+	ClientJobQueueName               string        `json:"job_queue_name" config:"client.job_queue_name"`
 	done                             chan struct{} `json:"-" config:"-"`
 }
 
@@ -30,6 +33,9 @@ func (a *serverConfig) SetDefaults() {
 func (a *serverConfig) Read() {
 	defer close(a.done)
 	vipertags.Fill(a)
+	if a.ClientJobQueueName == "" || a.ClientJobQueueName == "default" {
+		a.ClientJobQueueName = config.App.Name + "_" + runtime.GOARCH
+	}
 }
 
 func (c serverConfig) Wait() {

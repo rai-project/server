@@ -67,7 +67,7 @@ func New(opts ...Option) (*Server, error) {
 		stdout:                           nopWriterCloser{stdout},
 		stderr:                           nopWriterCloser{stderr},
 		numworkers:                       nworkers,
-		jobQueueName:                     config.App.Name,
+		jobQueueName:                     Config.ClientJobQueueName,
 		containerBuildDirectory:          DefaultContainerBuildDirectory,
 		containerSourceDirectory:         DefaultContainerSourceDirectory,
 		clientUploadBucketName:           Config.ClientUploadBucketName,
