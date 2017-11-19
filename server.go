@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"runtime"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	colorable "github.com/mattn/go-colorable"
@@ -74,7 +73,7 @@ func New(opts ...Option) (*Server, error) {
 		clientUploadDestinationDirectory: Config.ClientUploadDestinationDirectory,
 		clientAppName:                    Config.ClientAppName,
 		context:                          context.Background(),
-		timelimit:                        10 * time.Minute,
+		timelimit:                        Config.ClientJobTimeLimit,
 	}
 
 	for _, o := range opts {

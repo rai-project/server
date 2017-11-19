@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -39,6 +40,7 @@ type WorkRequest struct {
 	store          store.Store
 	stdout         io.Writer
 	stderr         io.Writer
+	canceler       context.CancelFunc
 	serverOptions  Options
 }
 
@@ -103,7 +105,15 @@ func NewWorkerRequest(job *model.JobRequest, serverOpts Options) (*WorkRequest, 
 		return nil, err
 	}
 
+	var canceler context.CancelFunc
+	if serverOpts.timelimit != 0 {
+		serverOpts.context, canceler = context.WithTimeout(serverOpts.context, serverOpts.timelimit)
+	} else {
+		serverOpts.context, canceler = context.WithCancel(serverOpts.context)
+	}
+
 	d, err := docker.NewClient(
+		docker.ClientContext(serverOpts.context),
 		docker.Stdout(stdout),
 		docker.Stderr(stderr),
 		docker.Stdin(nil),
@@ -120,6 +130,7 @@ func NewWorkerRequest(job *model.JobRequest, serverOpts Options) (*WorkRequest, 
 		docker:         d,
 		buildSpec:      job.BuildSpecification,
 		store:          st,
+		canceler:       canceler,
 		serverOptions:  serverOpts,
 	}, nil
 }
@@ -224,6 +235,26 @@ func (w *WorkRequest) pushImage(buildSpec *model.BuildImageSpecification, upload
 }
 
 func (w *WorkRequest) Start() error {
+	ctx := w.serverOptions.context
+	errChan := make(chan error, 1)
+	go func() {
+		errChan <- w.run()
+	}()
+
+	select {
+	case <-ctx.Done():
+		err := ctx.Err()
+		if err == nil {
+			w.publishStderr(color.RedString("✱ The server has terminated your job since it exceeds the configured time limit."))
+			return nil
+		}
+		return err
+	case err := <-errChan:
+		return err
+	}
+}
+
+func (w *WorkRequest) run() error {
 	buildSpec := w.buildSpec
 
 	defer func() {
@@ -419,6 +450,9 @@ func (w *WorkRequest) Close() error {
 		if err := w.publisher.Stop(); err != nil {
 			log.WithError(err).Error("failed to stop pubsub publisher")
 		}
+	}
+	if w.canceler != nil {
+		w.canceler()
 	}
 
 	if w.pubsubConn != nil {

@@ -2,6 +2,7 @@ package server
 
 import (
 	"runtime"
+	"time"
 
 	"github.com/k0kubun/pp"
 	"github.com/rai-project/config"
@@ -13,6 +14,7 @@ type serverConfig struct {
 	ClientUploadBucketName           string        `json:"upload_bucket" config:"client.upload_bucket" default:"files.rai-project.com"`
 	ClientUploadDestinationDirectory string        `json:"upload_destination_directory" config:"client.upload_destination_directory" default:"userdata"`
 	ClientJobQueueName               string        `json:"job_queue_name" config:"client.job_queue_name"`
+	ClientJobTimeLimit               time.Duration `json:"client_job_time_limit" config:"client.job_time_limit"`
 	done                             chan struct{} `json:"-" config:"-"`
 }
 
