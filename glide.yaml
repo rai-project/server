@@ -9,11 +9,11 @@ import:
   - aws
   - aws/session
 - package: github.com/fatih/color
-  version: master
+  version: ~1.7.0
 - package: github.com/k0kubun/pp
   version: ~2.3.0
 - package: github.com/mattn/go-colorable
-  version: master
+  version: ~0.0.9
 - package: github.com/pkg/errors
   version: ~0.8.0
 - package: github.com/rai-project/archive
