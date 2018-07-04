@@ -338,12 +338,12 @@ func (w *WorkRequest) run() error {
 					buildSpec.Resources.GPU.Count)))
 			buildSpec.Resources.GPU.Count = 0
 		}
-		for ii := 0; ii < buildSpec.Resources.GPU.Count; ii++ {
-			containerOpts = append(containerOpts, docker.CUDADevice(ii))
-		}
-		if buildSpec.Resources.GPU.Count > 0 {
-			containerOpts = append(containerOpts, docker.NvidiaVolume(""))
-		}
+		//for ii := 0; ii < buildSpec.Resources.GPU.Count; ii++ {
+		//	containerOpts = append(containerOpts, docker.CUDADevice(ii))
+		//}
+		//if buildSpec.Resources.GPU.Count > 0 {
+		//	containerOpts = append(containerOpts, docker.NvidiaVolume(""))
+		//}
 	}
 	container, err := docker.NewContainer(w.docker, containerOpts...)
 	if err != nil {
