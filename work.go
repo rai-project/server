@@ -162,7 +162,7 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 		spec.ImageName = uuid.NewV4()
 	}
   
-  if !config.DisableRAIDockerNamespaceProtection {
+  if !Config.DisableRAIDockerNamespaceProtection {
     appName := strings.TrimSuffix(config.App.Name, "d")
     if strings.HasPrefix(spec.ImageName, appName) || strings.HasPrefix(spec.ImageName, config.App.Name) {
       w.publishStderr(color.RedString("✱ Docker image name cannot start with " + appName + "/ . Choose a different prefix."))
