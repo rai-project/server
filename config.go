@@ -15,7 +15,7 @@ type serverConfig struct {
 	ClientUploadDestinationDirectory string        `json:"upload_destination_directory" config:"client.upload_destination_directory" default:"userdata"`
 	ClientJobQueueName               string        `json:"job_queue_name" config:"client.job_queue_name"`
 	ClientJobTimeLimit               time.Duration `json:"client_job_time_limit" config:"client.job_time_limit"`
-  DisableRAIDockerNamespaceProtection bool          `json:"disable_rai_docker_namespace_protection" config:"server.disable_rai_docker_namespace_protection"`
+  DisableRAIDockerNamespaceProtection bool       `json:"disable_rai_docker_namespace_protection" config:"server.disable_rai_docker_namespace_protection" default:"FALSE"`
 	done                             chan struct{} `json:"-" config:"-"`
 }
 
