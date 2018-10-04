@@ -161,14 +161,14 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 	if spec.ImageName == "" {
 		spec.ImageName = uuid.NewV4()
 	}
-  
-  if !Config.DisableRAIDockerNamespaceProtection {
-    appName := strings.TrimSuffix(config.App.Name, "d")
-    if strings.HasPrefix(spec.ImageName, appName) || strings.HasPrefix(spec.ImageName, config.App.Name) {
-      w.publishStderr(color.RedString("✱ Docker image name cannot start with " + appName + "/ . Choose a different prefix."))
-      return errors.New("docker image namespace")
-    }
-  }
+
+	if !Config.DisableRAIDockerNamespaceProtection {
+		appName := strings.TrimSuffix(config.App.Name, "d")
+		if strings.HasPrefix(spec.ImageName, appName) || strings.HasPrefix(spec.ImageName, config.App.Name) {
+			w.publishStderr(color.RedString("✱ Docker image name cannot start with " + appName + "/ . Choose a different prefix."))
+			return errors.New("docker image namespace")
+		}
+	}
 
 	if w.docker.HasImage(spec.ImageName) && spec.NoCache == false {
 		w.publishStdout(color.YellowString("✱ Using cached version of the docker image. Set no_cache=true to disable cache."))
@@ -340,6 +340,7 @@ func (w *WorkRequest) run() error {
 					buildSpec.Resources.GPU.Count)))
 			buildSpec.Resources.GPU.Count = 0
 		}
+		containerOpts = append(containerOpts, docker.Runtime("nvidia"))
 		//for ii := 0; ii < buildSpec.Resources.GPU.Count; ii++ {
 		//	containerOpts = append(containerOpts, docker.CUDADevice(ii))
 		//}
@@ -440,12 +441,14 @@ func (w *WorkRequest) run() error {
 }
 
 func (w *WorkRequest) Close() error {
+	defer func() {
+		if w.docker != nil {
+			w.docker.Close()
+		}
+	}()
+
 	if w.container != nil {
 		w.container.Close()
-	}
-
-	if w.docker != nil {
-		w.docker.Close()
 	}
 
 	if w.publisher != nil {
