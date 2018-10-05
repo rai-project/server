@@ -44,7 +44,7 @@ func (a *serverConfig) Read() {
 	if a.NumberOfWorkers == 0 {
 		a.NumberOfWorkers = runtime.NumCPU()
 		if nvidiasmi.HasGPU {
-			nworkers = nvidiasmi.GPUCount
+			a.NumberOfWorkers = nvidiasmi.HyperQSize
 		}
 	}
 }
