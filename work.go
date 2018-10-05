@@ -340,13 +340,7 @@ func (w *WorkRequest) run() error {
 					buildSpec.Resources.GPU.Count)))
 			buildSpec.Resources.GPU.Count = 0
 		}
-		containerOpts = append(containerOpts, docker.Runtime("nvidia"))
-		//for ii := 0; ii < buildSpec.Resources.GPU.Count; ii++ {
-		//	containerOpts = append(containerOpts, docker.CUDADevice(ii))
-		//}
-		//if buildSpec.Resources.GPU.Count > 0 {
-		//	containerOpts = append(containerOpts, docker.NvidiaVolume(""))
-		//}
+		containerOpts = append(containerOpts, docker.Runtime("nvidia"), docker.GPUCount(buildSpec.Resources.GPU.Count))
 	}
 	container, err := docker.NewContainer(w.docker, containerOpts...)
 	if err != nil {
@@ -441,14 +435,13 @@ func (w *WorkRequest) run() error {
 }
 
 func (w *WorkRequest) Close() error {
-	defer func() {
-		if w.docker != nil {
-			w.docker.Close()
-		}
-	}()
 
 	if w.container != nil {
 		w.container.Close()
+	}
+
+	if w.docker != nil {
+		w.docker.Close()
 	}
 
 	if w.publisher != nil {
@@ -456,14 +449,15 @@ func (w *WorkRequest) Close() error {
 			log.WithError(err).Error("failed to stop pubsub publisher")
 		}
 	}
-	if w.canceler != nil {
-		w.canceler()
-	}
 
 	if w.pubsubConn != nil {
 		if err := w.pubsubConn.Close(); err != nil {
 			log.WithError(err).Error("failed to close pubsub connection")
 		}
+	}
+
+	if w.canceler != nil {
+		w.canceler()
 	}
 
 	return nil

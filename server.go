@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"runtime"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	colorable "github.com/mattn/go-colorable"
@@ -15,7 +14,6 @@ import (
 	"github.com/rai-project/config"
 	"github.com/rai-project/docker"
 	"github.com/rai-project/model"
-	nvidiasmi "github.com/rai-project/nvidia-smi"
 	"github.com/rai-project/pubsub"
 	"github.com/rai-project/serializer"
 	"github.com/rai-project/serializer/json"
@@ -51,10 +49,7 @@ type nopWriterCloser struct {
 func (nopWriterCloser) Close() error { return nil }
 
 func New(opts ...Option) (*Server, error) {
-	nworkers := runtime.NumCPU()
-	if nvidiasmi.HasGPU {
-		nworkers = nvidiasmi.GPUCount
-	}
+	nworkers := Config.NumberOfWorkers
 
 	stdout, stderr := colorable.NewColorableStdout(), colorable.NewColorableStderr()
 	if !config.App.Color {

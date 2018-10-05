@@ -59,9 +59,7 @@ func (w *Worker) Start() {
 	}()
 }
 func (w *Worker) Stop() {
-	go func() {
-		w.QuitChan <- true
-	}()
+	close(w.QuitChan)
 }
 
 func StartDispatcher(nworkers int) *Dispatcher {
@@ -81,19 +79,16 @@ func StartDispatcher(nworkers int) *Dispatcher {
 	}
 
 	go func() {
-		for {
-			select {
-			case work := <-workQueue:
-				wg.Add(1)
-				log.WithField("id", work.ID).Debug("queue work request")
-				worker := <-workerQueue
-				go func() {
-					defer wg.Done()
+		for work := range workQueue {
+			wg.Add(1)
+			log.WithField("id", work.ID).Debug("queue work request")
+			worker := <-workerQueue
+			go func() {
+				defer wg.Done()
 
-					log.WithField("id", work.ID).Debug("dispatching work request")
-					worker <- work
-				}()
-			}
+				log.WithField("id", work.ID).Debug("dispatching work request")
+				worker <- work
+			}()
 		}
 	}()
 	return &Dispatcher{
