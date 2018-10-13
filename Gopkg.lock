@@ -61,7 +61,7 @@
   revision = "eb2c6b5be1b66bab83016e0b05f01b8d5496ffbd"
 
 [[projects]]
-  digest = "1:f7340212bf84059368c0b8f5764b9217b953c6e93971fc737b7cf0906b826cca"
+  digest = "1:491249bcb3538f9a6e02e3275266dfa92939cbed1459879bfdd4d007bfcf40b3"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -101,8 +101,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "3c7ce80a3b6d9b952022a6c5e5dd758486ff4de1"
-  version = "v1.15.48"
+  revision = "bf8067ceb6e7f51e150c218972dccfeeed892b85"
+  version = "v1.15.54"
 
 [[projects]]
   branch = "master"
@@ -129,7 +129,7 @@
   revision = "be9bd761db19d4fc551d40be908f02e00487511d"
 
 [[projects]]
-  digest = "1:ece8cff953ed3dbbbf5d5aa41e24f61ac4c1b601004aea9d56d572af363b71e7"
+  digest = "1:d976f75bc1bc6cdbef99ae503e713f753d98d9effb9e278701956ee34cee1b33"
   name = "github.com/coreos/etcd"
   packages = [
     "client",
@@ -139,8 +139,8 @@
     "version",
   ]
   pruneopts = "UT"
-  revision = "fca8add78a9d926166eb739b8e4a124434025ba3"
-  version = "v3.3.9"
+  revision = "27fc7e2296f506182f58ce846e48f36b34fe6842"
+  version = "v3.3.10"
 
 [[projects]]
   digest = "1:0ef770954bca104ee99b3b6b7f9b240605ac03517d9f98cbc1893daa03f3c038"
@@ -179,7 +179,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:118cc70a606d518df3a54fe2bf9ce7080883dd7d50f701ce2c10a2aa7fb95df9"
+  digest = "1:23a04be58b0b777fedc03d9dd7cb4e66327b8bf0129e91bf69c39e82ae612e77"
   name = "github.com/docker/docker"
   packages = [
     "api",
@@ -217,7 +217,7 @@
     "pkg/term/windows",
   ]
   pruneopts = "UT"
-  revision = "c77cfbfef5a8c2764256ef0979e0fb0f26f8e8c1"
+  revision = "10ebe6381e1f31faf6b66a53babe5bc4be41457a"
 
 [[projects]]
   branch = "master"
@@ -275,12 +275,12 @@
   version = "v1.7.0"
 
 [[projects]]
-  digest = "1:ca82a3b99694824c627573c2a76d0e49719b4a9c02d1d85a2ac91f1c1f52ab9b"
+  digest = "1:af43bdaaf86655a2343f113e9b293bbc16b12099eaeb223982bbe4d4c22ba14d"
   name = "github.com/fatih/structs"
   packages = ["."]
   pruneopts = "UT"
-  revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
-  version = "v1.0"
+  revision = "4966fc68f5b7593aafa6cbbba2d65ec6e1416047"
+  version = "v1.1.0"
 
 [[projects]]
   branch = "master"
@@ -437,7 +437,7 @@
     "pkg/sys",
   ]
   pruneopts = "UT"
-  revision = "b92c3242544c00af87834233af799ff3b207451d"
+  revision = "3ef3fefd5483696bd5d38f8cd9e2f37e6feaeed3"
 
 [[projects]]
   branch = "master"
@@ -499,7 +499,7 @@
     "libcontainer/user",
   ]
   pruneopts = "UT"
-  revision = "2abd837c8c25b0102ac4ce14f17bc0bc7ddffba7"
+  revision = "398f670bcba4dad3aa4c37f8fd1c6d6f9e5a6e15"
 
 [[projects]]
   digest = "1:808cdddf087fb64baeae67b8dfaee2069034d9704923a3cb8bd96a995421a625"
@@ -535,11 +535,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0ad04505c681bdf3f8807e381796118a12dd75068f24a5dc814f14600510b51f"
+  digest = "1:8540216ef434d305770bdc930b828587fb8ad9536c2d9036a9a82acc9c92d0b9"
   name = "github.com/rai-project/archive"
   packages = ["."]
   pruneopts = "UT"
-  revision = "953c5663ed18966b3913a148269ca5879ffbe3ab"
+  revision = "ef2c5965e3d16253818c28ac764c248cafc8e67f"
 
 [[projects]]
   branch = "master"
@@ -551,11 +551,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e93a64146133383c78c8b4c1f1facc7406a5ab4f2463c74033ca97cc3d90739f"
+  digest = "1:747facb094a52a77b58ba164fa2f90275609e7b76b189ff8c4af84fa65c5a73a"
   name = "github.com/rai-project/aws"
   packages = ["."]
   pruneopts = "UT"
-  revision = "f84032626a6b6a7b0dd8c6585bd148a6429f49e3"
+  revision = "4effddf4a7710e9953107ceb7d4a84fa0500d294"
 
 [[projects]]
   branch = "master"
@@ -597,14 +597,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9aebb0ea94a97a3c1d5b9a2f7fffa2ca41915437b7bbb7e87a5c7bc74e21ffb6"
+  digest = "1:a5c9000ee0081a78619e45edde06b7560ad66e9068c0e92e4cc0ca1062e52ef6"
   name = "github.com/rai-project/docker"
   packages = [
     ".",
     "cuda",
   ]
   pruneopts = "UT"
-  revision = "a223e73fe78f7d5bab2f8be040351e844164ae54"
+  revision = "fcdc554d4f3d8f2ad36f6cb320d0763b18ce24d4"
 
 [[projects]]
   branch = "master"
@@ -648,7 +648,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ef0027328cf835b08371798e78b8c4552ea8b8f19fe615e1380073179b892904"
+  digest = "1:9d02f708b212a861aafe938b7361584b3c85f3678e1292a443a5e0b1e798284d"
   name = "github.com/rai-project/passlib"
   packages = [
     ".",
@@ -663,7 +663,7 @@
     "hash/sha2crypt/raw",
   ]
   pruneopts = "UT"
-  revision = "d8fc10d54a26dc0287e013edf727fe8171175d11"
+  revision = "cdf39dc0b8eaeadaaff6d1911c3ab40d9db62162"
 
 [[projects]]
   branch = "master"
@@ -735,12 +735,12 @@
   revision = "8dc2a1a8a7a32a0a2d482d545cc579e5fe839356"
 
 [[projects]]
-  digest = "1:dc2d85c13ac22c22a1f3170a41a8e1b897fa05134aaf533f16df44f66a25b4a1"
+  digest = "1:3f53e9e4dfbb664cd62940c9c4b65a2171c66acd0b7621a1a6b8e78513525a52"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "UT"
-  revision = "a67f783a3814b8729bd2dac5780b5f78f8dbd64d"
-  version = "v1.1.0"
+  revision = "ad15b42461921f1fb3529b058c6786c6a45d5162"
+  version = "v1.1.1"
 
 [[projects]]
   digest = "1:6a4a11ba764a56d2758899ec6f3848d24698d48442ebce85ee7a3f63284526cd"
@@ -839,7 +839,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "e3636079e1a4c1f337f212cc5cd2aca108f6c900"
+  revision = "a92615f3c49003920a58dedcf32cf55022cefb8d"
 
 [[projects]]
   branch = "master"
@@ -852,7 +852,7 @@
     "proxy",
   ]
   pruneopts = "UT"
-  revision = "146acd28ed5894421fb5aac80ca93bc1b1f46f87"
+  revision = "49bb7cea24b1df9410e1712aa6433dae904ff66a"
 
 [[projects]]
   branch = "master"
@@ -864,7 +864,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:6677bfe7ff127700a7e3a07c696d45cff58713006d8cf30cbadf526fa23557d8"
+  digest = "1:9499e4b3284b485c77e0b08c20392d1add88a982fba2468fc01a45a025110df5"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
@@ -872,7 +872,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "8469e314837c2e2471561de5c47bbf8bfd0d9099"
+  revision = "fa43e7bc11baaae89f3f902b2b4d832b68234844"
 
 [[projects]]
   digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"

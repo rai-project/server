@@ -18,6 +18,8 @@ type serverConfig struct {
 	ClientJobTimeLimit                  time.Duration `json:"client_job_time_limit" config:"client.job_time_limit"`
 	NumberOfWorkers                     int           `json:"number_of_workers" config:"server.number_of_workers"`
 	DisableRAIDockerNamespaceProtection bool          `json:"disable_rai_docker_namespace_protection" config:"server.disable_rai_docker_namespace_protection" default:"FALSE"`
+	RLimitFileSoft                      uint64        `json:"rlimit_file_soft" config:"server.rlimit_file_soft"`
+	RLimitFileHard                      uint64        `json:"rlimit_file_hard" config:"server.rlimit_file_hard"`
 	done                                chan struct{} `json:"-" config:"-"`
 }
 
@@ -25,6 +27,9 @@ var (
 	Config = &serverConfig{
 		done: make(chan struct{}),
 	}
+
+	DefaultRLimitFileSoft uint64 = 500000
+	DefaultRLimitFileHard uint64 = 500000
 )
 
 func (serverConfig) ConfigName() string {
@@ -46,6 +51,12 @@ func (a *serverConfig) Read() {
 		if nvidiasmi.HasGPU {
 			a.NumberOfWorkers = nvidiasmi.HyperQSize
 		}
+	}
+	if a.RLimitFileSoft == 0 {
+		a.RLimitFileSoft = DefaultRLimitFileSoft
+	}
+	if a.RLimitFileHard == 0 {
+		a.RLimitFileHard = DefaultRLimitFileHard
 	}
 }
 
