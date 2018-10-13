@@ -45,7 +45,7 @@ func (w *Worker) Start() {
 				func(w *WorkRequest) {
 					defer work.Close()
 					// Receive a work request.
-					log.Debugf("worker%v: Received work request\n", w.ID)
+					log.Debugf("worker%v: Received work request from \n", w.ID)
 					if err := work.Start(); err != nil {
 						return
 					}
