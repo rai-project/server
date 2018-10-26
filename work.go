@@ -66,7 +66,7 @@ var (
 )
 
 func NewWorkerRequest(job *model.JobRequest, serverOpts Options) (*WorkRequest, error) {
-	publishChannel := serverOpts.clientAppName + "/log-" + job.ID
+	publishChannel := serverOpts.clientAppName + "/log-" + job.ID.Hex()
 
 	conn, err := redis.New()
 	if err != nil {
@@ -323,9 +323,10 @@ func (w *WorkRequest) run() error {
 		docker.WorkingDirectory(buildDir),
 		docker.Shell([]string{"/bin/bash"}),
 		docker.Entrypoint([]string{}),
+		docker.NetworkDisabled(true),
 	}
-	if buildSpec.Resources.Network {
-		containerOpts = append(containerOpts, docker.NetworkDisabled(!buildSpec.Resources.Network))
+	if buildSpec.Resources.Limits.Network {
+		containerOpts = append(containerOpts, docker.NetworkDisabled(!buildSpec.Resources.Limits.Network))
 	}
 	if buildSpec.Resources.GPU != nil {
 		if buildSpec.Resources.GPU.Count > len(nvidiasmi.Info.GPUS) {
@@ -374,7 +375,7 @@ func (w *WorkRequest) run() error {
 			return
 		}
 
-		uploadKey := opts.clientUploadDestinationDirectory + "/build-" + w.ID + "." + archive.Extension()
+		uploadKey := opts.clientUploadDestinationDirectory + "/build-" + w.ID.Hex() + "." + archive.Extension()
 		key, err := w.store.UploadFrom(
 			r,
 			uploadKey,
