@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"runtime"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	colorable "github.com/mattn/go-colorable"
@@ -11,6 +12,7 @@ import (
 	"github.com/rai-project/aws"
 	"github.com/rai-project/broker"
 	"github.com/rai-project/broker/sqs"
+	"github.com/rai-project/broker/rabbitmq"
 	"github.com/rai-project/config"
 	"github.com/rai-project/docker"
 	"github.com/rai-project/model"
@@ -78,6 +80,7 @@ func New(opts ...Option) (*Server, error) {
 	id := uuid.NewV4()
 
 	// Create an AWS session
+	// we put minio login info under aws on s390x
 	awsSession, err := aws.NewSession(
 		aws.Region(aws.AWSRegionUSEast1),
 		aws.AccessKey(aws.Config.AccessKey),
@@ -103,7 +106,7 @@ func (s *Server) jobHandler(pub broker.Publication) error {
 
 	msg := pub.Message()
 	if msg == nil {
-		return errors.New("recieved a nil message")
+		return errors.New("received a nil message")
 	}
 	body := msg.Body
 	err := s.serializer.Unmarshal(body, jobRequest)
@@ -131,14 +134,24 @@ func (s *Server) jobHandler(pub broker.Publication) error {
 
 func (s *Server) publishSubscribe() error {
 	log.Debug("Server subscribed to ", s.options.jobQueueName, " queue")
-	brkr, err := sqs.New(
-		sqs.QueueName(s.options.jobQueueName),
-		broker.Serializer(json.New()),
-		sqs.Session(s.awsSession),
-	)
-	if err != nil {
-		return err
+	var brkr broker.Broker
+	var err error
+	if runtime.GOARCH == "s390x" {
+		brkr = rabbitmq.New(
+			rabbitmq.QueueName(s.options.jobQueueName),
+			broker.Serializer(json.New()),
+		)
+	} else {
+		brkr, err = sqs.New(
+			sqs.QueueName(s.options.jobQueueName),
+			broker.Serializer(json.New()),
+			sqs.Session(s.awsSession),
+		)
+		if err != nil {
+			return err
+		}
 	}
+	brkr.Connect()
 	subscriber, err := brkr.Subscribe(
 		"rai",
 		s.jobHandler,
