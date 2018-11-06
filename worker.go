@@ -47,6 +47,7 @@ func (w *Worker) Start() {
 					// Receive a work request.
 					log.Debugf("worker%v: Received work request from \n", w.ID)
 					if err := work.Start(); err != nil {
+						log.WithError(err).Error("worker: error while working\n")
 						return
 					}
 				}(work)
