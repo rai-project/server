@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"strconv"
 	"sync"
 
@@ -53,7 +52,7 @@ func (w *Worker) Start() {
 				}(work)
 			case <-w.QuitChan:
 				// We have been asked to stop.
-				fmt.Printf("worker%d stopping\n", w.ID)
+				// fmt.Printf("worker-%v stopping\n", w.ID)
 				return
 			}
 		}
