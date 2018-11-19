@@ -3,7 +3,7 @@ package server
 import (
 	"runtime/debug"
 
-	"github.com/minio/minio/pkg/sys"
+	"github.com/rai-project/sys"
 )
 
 func setMaxResources() (err error) {
