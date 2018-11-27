@@ -341,7 +341,7 @@ func (w *WorkRequest) run() error {
 			w.publishStderr(color.RedString(
 				fmt.Sprintf("✱ The number of gpus should be a positive number, but got  %d.",
 					buildSpec.Resources.GPU.Count)))
-			buildSpec.Resources.GPU.Count = 0
+			buildSpec.Resources.GPU.Count = 1
 		}
 		containerOpts = append(containerOpts, docker.Runtime("nvidia"), docker.GPUCount(buildSpec.Resources.GPU.Count))
 	}
