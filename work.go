@@ -465,7 +465,6 @@ func (w *WorkRequest) Close() error {
 
 	//Increment available_workers
 	*w.available_workers += 1
-	println(*w.available_workers)
 
 	return nil
 }
