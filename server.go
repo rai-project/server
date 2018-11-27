@@ -11,8 +11,8 @@ import (
 	"github.com/rai-project/auth"
 	"github.com/rai-project/aws"
 	"github.com/rai-project/broker"
-	"github.com/rai-project/broker/sqs"
 	"github.com/rai-project/broker/rabbitmq"
+	"github.com/rai-project/broker/sqs"
 	"github.com/rai-project/config"
 	"github.com/rai-project/docker"
 	"github.com/rai-project/model"
@@ -141,14 +141,13 @@ func (s *Server) publishSubscribe() error {
 	if runtime.GOARCH == "s390x" {
 		brkr = rabbitmq.New(
 			rabbitmq.QueueName(s.options.jobQueueName),
-			broker.Serializer(json.New()),,
-			sqs.AvailableWorkers(&s.available_workers),
+			broker.Serializer(json.New()),
 		)
 	} else {
 		brkr, err = sqs.New(
 			sqs.QueueName(s.options.jobQueueName),
 			broker.Serializer(json.New()),
-			sqs.Session(s.awsSession),,
+			sqs.Session(s.awsSession),
 			sqs.AvailableWorkers(&s.available_workers),
 		)
 		if err != nil {
