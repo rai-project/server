@@ -21,7 +21,7 @@ import (
 	"github.com/rai-project/config"
 	"github.com/rai-project/docker"
 	"github.com/rai-project/model"
-	nvidiasmi "github.com/rai-project/nvidia-smi"
+	"github.com/rai-project/nvidia-smi"
 	"github.com/rai-project/pubsub"
 	"github.com/rai-project/pubsub/redis"
 	"github.com/rai-project/store"
@@ -31,17 +31,18 @@ import (
 
 type WorkRequest struct {
 	*model.JobRequest
-	publisher      pubsub.Publisher
-	publishChannel string
-	pubsubConn     pubsub.Connection
-	docker         *docker.Client
-	container      *docker.Container
-	buildSpec      model.BuildSpecification
-	store          store.Store
-	stdout         io.Writer
-	stderr         io.Writer
-	canceler       context.CancelFunc
-	serverOptions  Options
+	publisher         pubsub.Publisher
+	publishChannel    string
+	pubsubConn        pubsub.Connection
+	docker            *docker.Client
+	container         *docker.Container
+	buildSpec         model.BuildSpecification
+	store             store.Store
+	stdout            io.Writer
+	stderr            io.Writer
+	canceler          context.CancelFunc
+	serverOptions     Options
+	available_workers *int
 }
 
 type publishWriter struct {
@@ -65,7 +66,7 @@ var (
 	}
 )
 
-func NewWorkerRequest(job *model.JobRequest, serverOpts Options) (*WorkRequest, error) {
+func NewWorkerRequest(job *model.JobRequest, serverOpts Options, available_workers *int) (*WorkRequest, error) {
 	publishChannel := serverOpts.clientAppName + "/log-" + job.ID.Hex()
 
 	conn, err := redis.New()
@@ -123,15 +124,16 @@ func NewWorkerRequest(job *model.JobRequest, serverOpts Options) (*WorkRequest, 
 	}
 
 	return &WorkRequest{
-		JobRequest:     job,
-		pubsubConn:     conn,
-		publishChannel: publishChannel,
-		publisher:      publisher,
-		docker:         d,
-		buildSpec:      job.BuildSpecification,
-		store:          st,
-		canceler:       canceler,
-		serverOptions:  serverOpts,
+		JobRequest:        job,
+		pubsubConn:        conn,
+		publishChannel:    publishChannel,
+		publisher:         publisher,
+		docker:            d,
+		buildSpec:         job.BuildSpecification,
+		store:             st,
+		canceler:          canceler,
+		serverOptions:     serverOpts,
+		available_workers: available_workers,
 	}, nil
 }
 
@@ -460,6 +462,10 @@ func (w *WorkRequest) Close() error {
 	if w.canceler != nil {
 		w.canceler()
 	}
+
+	//Increment available_workers
+	*w.available_workers += 1
+	println(*w.available_workers)
 
 	return nil
 }
