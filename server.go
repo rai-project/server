@@ -35,6 +35,8 @@ type Server struct {
 	dispatcher    *Dispatcher
 	publishers    map[string]pubsub.Publisher
 
+	availableWorkers int
+
 	// BeforeShutdown is an optional callback function that is called
 	// before the server is closed.
 	BeforeShutdown func()
@@ -42,8 +44,6 @@ type Server struct {
 	// AfterShutdown is an optional callback function that is called
 	// after the server is closed.
 	AfterShutdown func()
-
-	available_workers int
 }
 
 type nopWriterCloser struct {
@@ -125,7 +125,7 @@ func (s *Server) jobHandler(pub broker.Publication) error {
 		}
 	}
 
-	work, err := NewWorkerRequest(jobRequest, s.options, &s.available_workers)
+	work, err := NewWorkerRequest(jobRequest, s.options, s.availableWorkers)
 	if err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func (s *Server) publishSubscribe() error {
 			sqs.QueueName(s.options.jobQueueName),
 			broker.Serializer(json.New()),
 			sqs.Session(s.awsSession),
-			sqs.AvailableWorkers(&s.available_workers),
+			sqs.AvailableWorkers(s.availableWorkers),
 		)
 		if err != nil {
 			return err
@@ -174,7 +174,7 @@ func (s *Server) Connect() error {
 	s.dispatcher = StartDispatcher(s.options.numworkers)
 
 	//Set Number of Workers
-	s.available_workers = s.options.numworkers
+	s.availableWorkers = s.options.numworkers
 
 	if err := s.publishSubscribe(); err != nil {
 		return err
