@@ -464,7 +464,7 @@ func (w *WorkRequest) Close() error {
 	}
 
 	//Increment availableWorkers
-	w.availableWorkers += 1
+	w.availableWorkers++
 
 	return nil
 }
