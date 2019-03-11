@@ -66,6 +66,7 @@ var (
 	}
 )
 
+// NewWorkerRequest ...
 func NewWorkerRequest(job *model.JobRequest, serverOpts Options, availableWorkers *int) (*WorkRequest, error) {
 	publishChannel := serverOpts.clientAppName + "/log-" + job.ID.Hex()
 
