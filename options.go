@@ -96,6 +96,7 @@ func TimeLimit(d time.Duration) Option {
 	}
 }
 
+// OnClose ...
 func OnClose(f func()) Option {
 	return func(o *Options) {
 		o.onClose = append(o.onClose, f)
