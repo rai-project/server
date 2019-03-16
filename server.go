@@ -125,9 +125,9 @@ func (s *Server) jobHandler(pub broker.Publication) error {
 		}
 	}
 
-	s.options = append(s.options, OnClose(func() {
+	OnClose(func() {
 		s.availableWorkers++
-	}))
+	})(&s.options)
 
 	work, err := NewWorkerRequest(jobRequest, s.options)
 	if err != nil {
