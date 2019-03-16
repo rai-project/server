@@ -103,6 +103,7 @@ func OnClose(f func()) Option {
 	}
 }
 
+// OnWorkerClose ...
 func OnWorkerClose(f func()) Option {
 	return func(o *Options) {
 		o.onWorkerClose = append(o.onWorkerClose, f)
