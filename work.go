@@ -31,18 +31,17 @@ import (
 
 type WorkRequest struct {
 	*model.JobRequest
-	publisher        pubsub.Publisher
-	publishChannel   string
-	pubsubConn       pubsub.Connection
-	docker           *docker.Client
-	container        *docker.Container
-	buildSpec        model.BuildSpecification
-	store            store.Store
-	stdout           io.Writer
-	stderr           io.Writer
-	canceler         context.CancelFunc
-	serverOptions    Options
-	availableWorkers *int
+	publisher      pubsub.Publisher
+	publishChannel string
+	pubsubConn     pubsub.Connection
+	docker         *docker.Client
+	container      *docker.Container
+	buildSpec      model.BuildSpecification
+	store          store.Store
+	stdout         io.Writer
+	stderr         io.Writer
+	canceler       context.CancelFunc
+	serverOptions  Options
 }
 
 type publishWriter struct {
@@ -67,7 +66,7 @@ var (
 )
 
 // NewWorkerRequest ...
-func NewWorkerRequest(job *model.JobRequest, serverOpts Options, availableWorkers *int) (*WorkRequest, error) {
+func NewWorkerRequest(job *model.JobRequest, serverOpts Options) (*WorkRequest, error) {
 	publishChannel := serverOpts.clientAppName + "/log-" + job.ID.Hex()
 
 	conn, err := redis.New()
@@ -125,16 +124,15 @@ func NewWorkerRequest(job *model.JobRequest, serverOpts Options, availableWorker
 	}
 
 	return &WorkRequest{
-		JobRequest:       job,
-		pubsubConn:       conn,
-		publishChannel:   publishChannel,
-		publisher:        publisher,
-		docker:           d,
-		buildSpec:        job.BuildSpecification,
-		store:            st,
-		canceler:         canceler,
-		serverOptions:    serverOpts,
-		availableWorkers: availableWorkers,
+		JobRequest:     job,
+		pubsubConn:     conn,
+		publishChannel: publishChannel,
+		publisher:      publisher,
+		docker:         d,
+		buildSpec:      job.BuildSpecification,
+		store:          st,
+		canceler:       canceler,
+		serverOptions:  serverOpts,
 	}, nil
 }
 
@@ -460,12 +458,13 @@ func (w *WorkRequest) Close() error {
 		}
 	}
 
+	for _, f := range w.serverOptions.onWorkerClose {
+		f()
+	}
+
 	if w.canceler != nil {
 		w.canceler()
 	}
-
-	//Increment availableWorkers
-	w.availableWorkers++
 
 	return nil
 }

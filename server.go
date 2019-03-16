@@ -125,7 +125,11 @@ func (s *Server) jobHandler(pub broker.Publication) error {
 		}
 	}
 
-	work, err := NewWorkerRequest(jobRequest, s.options, s.availableWorkers)
+	s.options = append(s.options, OnClose(func() {
+		s.availableWorkers++
+	}))
+
+	work, err := NewWorkerRequest(jobRequest, s.options)
 	if err != nil {
 		return err
 	}
