@@ -31,18 +31,17 @@ import (
 
 type WorkRequest struct {
 	*model.JobRequest
-	publisher         pubsub.Publisher
-	publishChannel    string
-	pubsubConn        pubsub.Connection
-	docker            *docker.Client
-	container         *docker.Container
-	buildSpec         model.BuildSpecification
-	store             store.Store
-	stdout            io.Writer
-	stderr            io.Writer
-	canceler          context.CancelFunc
-	serverOptions     Options
-	available_workers *int
+	publisher      pubsub.Publisher
+	publishChannel string
+	pubsubConn     pubsub.Connection
+	docker         *docker.Client
+	container      *docker.Container
+	buildSpec      model.BuildSpecification
+	store          store.Store
+	stdout         io.Writer
+	stderr         io.Writer
+	canceler       context.CancelFunc
+	serverOptions  Options
 }
 
 type publishWriter struct {
@@ -66,7 +65,8 @@ var (
 	}
 )
 
-func NewWorkerRequest(job *model.JobRequest, serverOpts Options, available_workers *int) (*WorkRequest, error) {
+// NewWorkerRequest ...
+func NewWorkerRequest(job *model.JobRequest, serverOpts Options) (*WorkRequest, error) {
 	publishChannel := serverOpts.clientAppName + "/log-" + job.ID.Hex()
 
 	conn, err := redis.New()
@@ -124,16 +124,15 @@ func NewWorkerRequest(job *model.JobRequest, serverOpts Options, available_worke
 	}
 
 	return &WorkRequest{
-		JobRequest:        job,
-		pubsubConn:        conn,
-		publishChannel:    publishChannel,
-		publisher:         publisher,
-		docker:            d,
-		buildSpec:         job.BuildSpecification,
-		store:             st,
-		canceler:          canceler,
-		serverOptions:     serverOpts,
-		available_workers: available_workers,
+		JobRequest:     job,
+		pubsubConn:     conn,
+		publishChannel: publishChannel,
+		publisher:      publisher,
+		docker:         d,
+		buildSpec:      job.BuildSpecification,
+		store:          st,
+		canceler:       canceler,
+		serverOptions:  serverOpts,
 	}, nil
 }
 
@@ -459,12 +458,13 @@ func (w *WorkRequest) Close() error {
 		}
 	}
 
+	for _, f := range w.serverOptions.onWorkerClose {
+		f()
+	}
+
 	if w.canceler != nil {
 		w.canceler()
 	}
-
-	//Increment available_workers
-	*w.available_workers += 1
 
 	return nil
 }

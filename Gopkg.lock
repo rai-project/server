@@ -592,7 +592,7 @@
     "sqs",
   ]
   pruneopts = "UT"
-  revision = "751e29719c77de9df2a9f3ac12d6df6d4220296d"
+  revision = "55bbe39e051860611e50d4ea05078dc2cf45c2e5"
 
 [[projects]]
   branch = "master"

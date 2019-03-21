@@ -19,6 +19,8 @@ type Options struct {
 	clientUploadDestinationDirectory string
 	clientAppName                    string
 	timelimit                        time.Duration
+	onClose                          []func()
+	onWorkerClose                    []func()
 }
 
 type Option func(*Options)
@@ -91,5 +93,19 @@ func ClientAppName(s string) Option {
 func TimeLimit(d time.Duration) Option {
 	return func(o *Options) {
 		o.timelimit = d
+	}
+}
+
+// OnClose ...
+func OnClose(f func()) Option {
+	return func(o *Options) {
+		o.onClose = append(o.onClose, f)
+	}
+}
+
+// OnWorkerClose ...
+func OnWorkerClose(f func()) Option {
+	return func(o *Options) {
+		o.onWorkerClose = append(o.onWorkerClose, f)
 	}
 }
