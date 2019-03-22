@@ -16,7 +16,7 @@ type serverConfig struct {
 	ClientUploadDestinationDirectory    string        `json:"upload_destination_directory" config:"client.upload_destination_directory" default:"userdata"`
 	ClientJobQueueName                  string        `json:"job_queue_name" config:"client.job_queue_name"`
 	ClientJobTimeLimit                  time.Duration `json:"client_job_time_limit" config:"client.job_time_limit"`
-	NumberOfWorkers                     int           `json:"number_of_workers" config:"server.number_of_workers"`
+	NumberOfWorkers                     int64         `json:"number_of_workers" config:"server.number_of_workers"`
 	DisableRAIDockerNamespaceProtection bool          `json:"disable_rai_docker_namespace_protection" config:"server.disable_rai_docker_namespace_protection" default:"FALSE"`
 	RLimitFileSoft                      uint64        `json:"rlimit_file_soft" config:"server.rlimit_file_soft"`
 	RLimitFileHard                      uint64        `json:"rlimit_file_hard" config:"server.rlimit_file_hard"`
@@ -47,9 +47,9 @@ func (a *serverConfig) Read() {
 		a.ClientJobQueueName = config.App.Name + "_" + runtime.GOARCH
 	}
 	if a.NumberOfWorkers == 0 {
-		a.NumberOfWorkers = runtime.NumCPU()
+		a.NumberOfWorkers = int64(runtime.NumCPU())
 		if nvidiasmi.HasGPU {
-			a.NumberOfWorkers = nvidiasmi.HyperQSize
+			a.NumberOfWorkers = int64(nvidiasmi.HyperQSize)
 		}
 	}
 	if a.RLimitFileSoft == 0 {

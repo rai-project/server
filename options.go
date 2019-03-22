@@ -10,7 +10,7 @@ type Options struct {
 	stdout                           io.WriteCloser
 	stderr                           io.WriteCloser
 	jobQueueName                     string
-	numworkers                       int
+	numWorkers                       int64
 	gpuaffinity                      int
 	containerBuildDirectory          string
 	containerSourceDirectory         string
@@ -44,7 +44,7 @@ func Stderr(s io.WriteCloser) Option {
 
 func NumWorkers(n int) Option {
 	return func(o *Options) {
-		o.numworkers = n
+		o.numWorkers = int64(n)
 	}
 }
 

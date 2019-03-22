@@ -1,7 +1,7 @@
 package server
 
 import (
-	"strconv"
+	"fmt"
 	"sync"
 
 	"github.com/rai-project/uuid"
@@ -21,10 +21,10 @@ type Dispatcher struct {
 	waitgroup   sync.WaitGroup
 }
 
-func NewWorker(id int, workerQueue chan chan *WorkRequest) *Worker {
+func NewWorker(id int64, workerQueue chan chan *WorkRequest) *Worker {
 	// Create, and return the worker.
 	worker := &Worker{
-		ID:          uuid.NewV4() + ":::" + strconv.Itoa(id),
+		ID:          uuid.NewV4() + ":::" + fmt.Sprint(id),
 		Work:        make(chan *WorkRequest),
 		WorkerQueue: workerQueue,
 		QuitChan:    make(chan bool),
@@ -62,20 +62,20 @@ func (w *Worker) Stop() {
 	close(w.QuitChan)
 }
 
-func StartDispatcher(nworkers int) *Dispatcher {
+func StartDispatcher(numWorkers int64) *Dispatcher {
 	// First, initialize the channel we are going to but the workers' work channels into.
-	workerQueue := make(chan chan *WorkRequest, nworkers)
+	workerQueue := make(chan chan *WorkRequest, numWorkers)
 	workQueue := make(chan *WorkRequest, 100)
-	workers := make([]*Worker, nworkers)
+	workers := make([]*Worker, numWorkers)
 	var wg sync.WaitGroup
 
 	// Now, create all of our workers.
-	for i := 0; i < nworkers; i++ {
-		log.Debug("Starting worker", i+1)
-		worker := NewWorker(i+1, workerQueue)
+	for ii := int64(0); ii < numWorkers; ii++ {
+		log.Debug("Starting worker", ii+1)
+		worker := NewWorker(ii+1, workerQueue)
 		worker.Start()
 
-		workers[i] = worker
+		workers[ii] = worker
 	}
 
 	go func() {

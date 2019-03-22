@@ -5,8 +5,11 @@ import (
 	"errors"
 	"io"
 	"runtime"
+	"sync/atomic"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/jpillora/backoff"
 	colorable "github.com/mattn/go-colorable"
 	"github.com/rai-project/auth"
 	"github.com/rai-project/aws"
@@ -35,7 +38,7 @@ type Server struct {
 	dispatcher    *Dispatcher
 	publishers    map[string]pubsub.Publisher
 
-	availableWorkers int
+	availableWorkers int64
 
 	// BeforeShutdown is an optional callback function that is called
 	// before the server is closed.
@@ -53,7 +56,7 @@ type nopWriterCloser struct {
 func (nopWriterCloser) Close() error { return nil }
 
 func New(opts ...Option) (*Server, error) {
-	nworkers := Config.NumberOfWorkers
+	numWorkers := Config.NumberOfWorkers
 
 	stdout, stderr := colorable.NewColorableStdout(), colorable.NewColorableStderr()
 	if !config.App.Color {
@@ -64,7 +67,7 @@ func New(opts ...Option) (*Server, error) {
 	options := Options{
 		stdout:                           nopWriterCloser{stdout},
 		stderr:                           nopWriterCloser{stderr},
-		numworkers:                       nworkers,
+		numWorkers:                       numWorkers,
 		jobQueueName:                     Config.ClientJobQueueName,
 		containerBuildDirectory:          DefaultContainerBuildDirectory,
 		containerSourceDirectory:         DefaultContainerSourceDirectory,
@@ -126,7 +129,7 @@ func (s *Server) jobHandler(pub broker.Publication) error {
 	}
 
 	OnClose(func() {
-		s.availableWorkers++
+		atomic.AddInt64(&s.availableWorkers, 1)
 	})(&s.options)
 
 	work, err := NewWorkerRequest(jobRequest, s.options)
@@ -157,11 +160,27 @@ func (s *Server) publishSubscribe() error {
 			return err
 		}
 	}
+
+	bkof := &backoff.Backoff{
+		Min:    100 * time.Millisecond,
+		Max:    10 * time.Minute,
+		Factor: 2,
+		Jitter: false,
+	}
+
 	brkr.Connect()
 	subscriber, err := brkr.Subscribe(
 		"rai",
 		s.jobHandler,
 		broker.AutoAck(true),
+		broker.BeforeReceiveSubscribeMessageCallback(func() {
+			// block until a worker is available
+			for atomic.LoadInt64(&s.availableWorkers) <= 0 {
+				time.Sleep(bkof.Duration())
+			}
+			atomic.AddInt64(&s.availableWorkers, -1)
+			bkof.Reset()
+		}),
 	)
 	if err != nil {
 		return err
@@ -174,10 +193,10 @@ func (s *Server) publishSubscribe() error {
 }
 
 func (s *Server) Connect() error {
-	s.dispatcher = StartDispatcher(s.options.numworkers)
+	s.dispatcher = StartDispatcher(s.options.numWorkers)
 
 	//Set Number of Workers
-	s.availableWorkers = s.options.numworkers
+	s.availableWorkers = s.options.numWorkers
 
 	if err := s.publishSubscribe(); err != nil {
 		return err
