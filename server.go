@@ -152,7 +152,6 @@ func (s *Server) publishSubscribe() error {
 			sqs.QueueName(s.options.jobQueueName),
 			broker.Serializer(json.New()),
 			sqs.Session(s.awsSession),
-			sqs.AvailableWorkers(s.availableWorkers),
 		)
 		if err != nil {
 			return err
