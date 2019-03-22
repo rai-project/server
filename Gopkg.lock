@@ -217,7 +217,7 @@
     "pkg/term/windows",
   ]
   pruneopts = "UT"
-  revision = "02ec758372cffd7325439e82337d63d0c23963f0"
+  revision = "7c197c18d30e1683767709d69397ad1c0a5b2164"
 
 [[projects]]
   branch = "master"
@@ -629,7 +629,7 @@
     "sqs",
   ]
   pruneopts = "UT"
-  revision = "1b22a7e7867718412e5f289cae07fbf21aeb914f"
+  revision = "a67a8d78b145addf504581c06410f50497e70a15"
 
 [[projects]]
   branch = "master"
@@ -637,7 +637,7 @@
   name = "github.com/rai-project/config"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3c09b31a40ed970b6ea95172df4c178add79dfa6"
+  revision = "d39524e3455d07b7db0a954c359e3ec64dda852a"
 
 [[projects]]
   branch = "master"
