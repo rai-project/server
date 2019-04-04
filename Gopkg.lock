@@ -29,6 +29,14 @@
   revision = "83e8b8723a9bf39481216e80575f4854c63ece4a"
 
 [[projects]]
+  branch = "master"
+  digest = "0:"
+  name = "github.com/Masterminds/semver"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c84ddcca87bf5a941b138dde832a7e20b0159ad8"
+
+[[projects]]
   digest = "0:"
   name = "github.com/Microsoft/go-winio"
   packages = ["."]
@@ -1067,6 +1075,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/BenLubar/memoize",
+    "github.com/Masterminds/semver",
     "github.com/Unknwon/com",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/session",

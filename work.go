@@ -12,6 +12,7 @@ import (
 
 	"bytes"
 
+	"github.com/Masterminds/semver"
 	"github.com/Unknwon/com"
 	azaws "github.com/aws/aws-sdk-go/aws"
 	"github.com/fatih/color"
@@ -276,6 +277,25 @@ func (w *WorkRequest) run() error {
 		w.publishStdout(color.GreenString("✱ Server has ended your request."))
 		w.publisher.End(w.publishChannel)
 	}()
+
+	serverVersion, err := getVersion()
+	if err != nil {
+		w.publishStderr(color.RedString("✱ Unable to get server version."))
+		return err
+	}
+	clientVersion, err := semver.NewVersion(w.JobRequest.ClientVersion.Version)
+	if err != nil {
+		w.publishStderr(color.RedString("✱ Unable to get client version."))
+		return err
+	}
+	if !serverVersion.Check(clientVersion) {
+		w.publishStderr(color.RedString("✱ Client/Server version mismatch."))
+		return errors.Errorf(
+			"the server version %v is not compatible with the client version %v",
+			config.App.Version,
+			w.JobRequest.ClientVersion.Version,
+		)
+	}
 
 	w.publishStdout(color.YellowString("✱ Server has accepted your job submission and started to configure the container."))
 
