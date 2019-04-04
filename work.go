@@ -206,7 +206,13 @@ func (w *WorkRequest) buildImage(spec *model.BuildImageSpecification, uploadedRe
 	defer f.Close()
 
 	w.publishStdout(color.YellowString("✱ Server is starting to build image."))
-	if err := w.docker.ImageBuild(spec.ImageName, spec.Dockerfile, f); err != nil {
+	err = w.docker.ImageBuild(
+		docker.BuildId(string(w.ID)),
+		docker.BuildTags([]string{spec.ImageName}),
+		docker.BuildDockerFilePath(spec.Dockerfile),
+		docker.BuildArchiveReader(f),
+	)
+	if err != nil {
 		w.publishStderr(color.RedString("✱ Unable to build dockerfile."))
 		return err
 	}
@@ -381,7 +387,7 @@ func (w *WorkRequest) run() error {
 			r,
 			uploadKey,
 			s3.Expiration(DefaultUploadExpiration()),
-			store.UploadMetata(map[string]interface{}{
+			store.UploadMetadata(map[string]interface{}{
 				"id":           w.ID,
 				"type":         "server_upload",
 				"worker":       info(),
