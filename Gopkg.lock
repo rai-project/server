@@ -483,7 +483,7 @@
   version = "v0.0.4"
 
 [[projects]]
-  branch = "master"
+  branch = "new-docs"
   digest = "0:"
   name = "github.com/minio/minio"
   packages = [
@@ -491,7 +491,7 @@
     "pkg/sys",
   ]
   pruneopts = "UT"
-  revision = "9c196d20cfee4983bcf380369b21f47dbc1da5e2"
+  revision = "6706cd3870b048c48322700fcafb74cf049e0660"
 
 [[projects]]
   branch = "master"

@@ -61,7 +61,7 @@ func (w *publishWriter) Write(p []byte) (int, error) {
 
 var (
 	DefaultUploadExpiration = func() time.Time {
-		return time.Now().AddDate(0, 1, 0) // next month
+		return time.Now().AddDate(0, 6, 0) // next 6 months
 	}
 )
 
