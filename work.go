@@ -278,7 +278,7 @@ func (w *WorkRequest) run() error {
 		w.publisher.End(w.publishChannel)
 	}()
 
-	serverVersion, err := getVersion()
+	serverVersionConstraint, err := getVersionConstraint()
 	if err != nil {
 		w.publishStderr(color.RedString("✱ Unable to get server version."))
 		return err
@@ -288,7 +288,7 @@ func (w *WorkRequest) run() error {
 		w.publishStderr(color.RedString("✱ Unable to get client version."))
 		return err
 	}
-	if !serverVersion.Check(clientVersion) {
+	if !serverVersionConstraint.Check(clientVersion) {
 		w.publishStderr(color.RedString("✱ Client/Server version mismatch."))
 		return errors.Errorf(
 			"the server version %v is not compatible with the client version %v",
@@ -308,7 +308,7 @@ func (w *WorkRequest) run() error {
 		return err
 	}
 
-	err := w.buildImage(buildSpec.Commands.BuildImage, bytes.NewBuffer(buf.Bytes()))
+	err = w.buildImage(buildSpec.Commands.BuildImage, bytes.NewBuffer(buf.Bytes()))
 	if err != nil {
 		w.publishStderr(color.RedString("✱ Unable to create image " + buildSpec.Commands.BuildImage.ImageName + "."))
 		return err
