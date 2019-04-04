@@ -95,8 +95,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "4a2b0831f1351f3ece1962805a88fcc667cedd3e"
-  version = "v1.19.0"
+  revision = "97ab38e1626747eaa660ff7e5e7d3f1a37172b36"
+  version = "v1.19.9"
 
 [[projects]]
   branch = "master"
@@ -113,6 +113,14 @@
   pruneopts = "UT"
   revision = "1e4cf3da559842a91afcb6ea6141451e6c30c618"
   version = "v2.1.1"
+
+[[projects]]
+  digest = "0:"
+  name = "github.com/cheekybits/genny"
+  packages = ["generic"]
+  pruneopts = "UT"
+  revision = "d2cf3cdd35ce0d789056c4bc02a4d6349c947caf"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -154,8 +162,8 @@
   name = "github.com/coreos/go-systemd"
   packages = ["activation"]
   pruneopts = "UT"
-  revision = "9002847aa1425fb6ac49077c0a630b3b67e0fbfd"
-  version = "v18"
+  revision = "95778dfbb74eb7e4dbaf43bf7d71809650ef8076"
+  version = "v19"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -217,7 +225,7 @@
     "pkg/term/windows",
   ]
   pruneopts = "UT"
-  revision = "7c197c18d30e1683767709d69397ad1c0a5b2164"
+  revision = "dbe4a30928d418e0570891a09703bcbc0e4997a1"
 
 [[projects]]
   branch = "master"
@@ -448,7 +456,7 @@
     "jwriter",
   ]
   pruneopts = "UT"
-  revision = "1de009706dbeb9d05f18586f0735fcdb7c524481"
+  revision = "1ea4449da9834f4d333f1cc461c374aea217d249"
 
 [[projects]]
   digest = "1:c658e84ad3916da105a761660dcaeb01e63416c8ec7bc62256a9b411a05fcd67"
@@ -483,7 +491,7 @@
     "pkg/sys",
   ]
   pruneopts = "UT"
-  revision = "89e45d069501875ba25cb595106da48b277a2bcd"
+  revision = "9c196d20cfee4983bcf380369b21f47dbc1da5e2"
 
 [[projects]]
   branch = "master"
@@ -553,7 +561,7 @@
     "libcontainer/user",
   ]
   pruneopts = "UT"
-  revision = "dd22a84864f529678e92dfe2d23b3daf6c786257"
+  revision = "029124da7af7360afa781a0234d1b083550f797c"
 
 [[projects]]
   digest = "1:808cdddf087fb64baeae67b8dfaee2069034d9704923a3cb8bd96a995421a625"
@@ -564,12 +572,12 @@
   version = "v2.1.0"
 
 [[projects]]
-  digest = "1:95741de3af260a92cc5c7f3f3061e85273f5a81b5db20d4bd68da74bd521675e"
+  digest = "0:"
   name = "github.com/pelletier/go-toml"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c01d1270ff3e442a8a57cddc1c92dc1138598194"
-  version = "v1.2.0"
+  revision = "63909f0a90ab0f36909e8e044e46ace10cf13ba2"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "0:"
@@ -601,7 +609,7 @@
   name = "github.com/rai-project/archive"
   packages = ["."]
   pruneopts = "UT"
-  revision = "a0a579624334f20ed93f83d7b5bf7d0610ac03d2"
+  revision = "2aa85bf702da46ce05d67e50681fe7387df8624d"
 
 [[projects]]
   branch = "master"
@@ -609,7 +617,7 @@
   name = "github.com/rai-project/auth"
   packages = ["."]
   pruneopts = "UT"
-  revision = "65e8b04f453bf5ed229613bb81eb0221b70a8a6e"
+  revision = "029fc59a2bb4128a36e245726b9019d64ab0f4e9"
 
 [[projects]]
   branch = "master"
@@ -656,7 +664,7 @@
     "cuda",
   ]
   pruneopts = "UT"
-  revision = "86779e24c596b48b85ad7f384755d9a52bd531fb"
+  revision = "b30c557f62bd40edbc3e61ec3082191a25b75abe"
 
 [[projects]]
   branch = "master"
@@ -750,7 +758,7 @@
     "s3",
   ]
   pruneopts = "UT"
-  revision = "25bd1ae26c9554d7c53a983ff5dd745c61fed1f8"
+  revision = "3372af25378ae6204b2cd0aa33dd00df7394bd51"
 
 [[projects]]
   branch = "master"
@@ -780,7 +788,7 @@
     "promise",
   ]
   pruneopts = "UT"
-  revision = "be23e9dad62b9c5de665f502450144abd61d31a6"
+  revision = "613b6e247b72449354f6ae1dfb4a58c2f988154c"
 
 [[projects]]
   branch = "master"
@@ -803,8 +811,8 @@
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "UT"
-  revision = "dae0fa8d5b0c810a8ab733fbd5510c7cae84eca4"
-  version = "v1.4.0"
+  revision = "8bdbc7bcc01dcbb8ec23dc8a28e332258d25251f"
+  version = "v1.4.1"
 
 [[projects]]
   digest = "0:"
@@ -814,8 +822,8 @@
     "mem",
   ]
   pruneopts = "UT"
-  revision = "f4711e4db9e9a1d3887343acb72b2bbfc2f686f5"
-  version = "v1.2.1"
+  revision = "588a75ec4f32903aa5e39a2619ba6a4631e28424"
+  version = "v1.2.2"
 
 [[projects]]
   digest = "0:"
@@ -850,7 +858,7 @@
     "remote",
   ]
   pruneopts = "UT"
-  revision = "9e56dacc08fbbf8c9ee2dbc717553c758ce42bc9"
+  revision = "fccfc2c271a59647debe6c5802362469a3700f0a"
 
 [[projects]]
   branch = "master"
@@ -858,7 +866,7 @@
   name = "github.com/streadway/amqp"
   packages = ["."]
   pruneopts = "UT"
-  revision = "14f78b41ce6da3d698c2ef2cc8c0ea7ce9e26688"
+  revision = "75d898a42a940fbc854dfd1a4199eabdc00cf024"
 
 [[projects]]
   digest = "0:"
@@ -908,10 +916,9 @@
     "openpgp/s2k",
     "pbkdf2",
     "scrypt",
-    "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "b7391e95e576cacdcdd422573063bc057239113d"
+  revision = "38d8ce5564a5b71b2e3a00553993f1b9a7ae852f"
 
 [[projects]]
   branch = "master"
@@ -922,7 +929,7 @@
     "proxy",
   ]
   pruneopts = "UT"
-  revision = "1272bf9dcd53ea65c09668fb4c76e65deb740072"
+  revision = "b630fd6fe46bcfc98f989005d8b8ec1400e60a6e"
 
 [[projects]]
   branch = "master"
@@ -945,7 +952,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "f7bb7a8bee54210937e93ec56d007d892c1f0580"
+  revision = "81d4e9dc473e5e8c933f2aaeba2a3d81efb9aed2"
 
 [[projects]]
   digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
@@ -976,7 +983,7 @@
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "e79c0c59cdb5e117ef82a6f885294df3d74065d5"
+  revision = "64821d5d210748c883cd2b809589555ae4654203"
 
 [[projects]]
   digest = "0:"
@@ -1002,8 +1009,8 @@
   name = "gopkg.in/go-playground/validator.v9"
   packages = ["."]
   pruneopts = "UT"
-  revision = "b199fa0642d29caca62b6a99d65cc981ba5edc3b"
-  version = "v9.27.0"
+  revision = "46b4b1e301c24cac870ffcb4ba5c8a703d1ef475"
+  version = "v9.28.0"
 
 [[projects]]
   digest = "1:174d05aec0155083f9b461f21a0a5c94f396c3cdb44f62445009ca05eef1372b"
@@ -1064,6 +1071,7 @@
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/fatih/color",
+    "github.com/jpillora/backoff",
     "github.com/k0kubun/pp",
     "github.com/mattn/go-colorable",
     "github.com/minio/minio/pkg/sys",

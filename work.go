@@ -21,7 +21,7 @@ import (
 	"github.com/rai-project/config"
 	"github.com/rai-project/docker"
 	"github.com/rai-project/model"
-	"github.com/rai-project/nvidia-smi"
+	nvidiasmi "github.com/rai-project/nvidia-smi"
 	"github.com/rai-project/pubsub"
 	"github.com/rai-project/pubsub/redis"
 	"github.com/rai-project/store"
@@ -381,12 +381,14 @@ func (w *WorkRequest) run() error {
 			r,
 			uploadKey,
 			s3.Expiration(DefaultUploadExpiration()),
-			s3.Metadata(map[string]interface{}{
+			store.UploadMetata(map[string]interface{}{
 				"id":           w.ID,
 				"type":         "server_upload",
 				"worker":       info(),
+				"download_key": w.UploadKey,
 				"profile":      w.User,
 				"submitted_at": w.CreatedAt,
+				"job_request":  w.JobRequest,
 				"created_at":   time.Now(),
 			}),
 			s3.ContentType(archive.MimeType()),
@@ -407,11 +409,6 @@ func (w *WorkRequest) run() error {
 		if cmd == "" {
 			continue
 		}
-		/*
-			if !strings.HasPrefix(cmd, "/bin/sh") && !strings.HasPrefix(cmd, "/bin/sh") {
-				cmd = "/bin/sh -c " + cmd
-			}
-		*/
 		exec, err := docker.NewExecutionFromString(container, cmd)
 		if err != nil {
 			w.publishStderr(color.RedString("✱ Unable create run command " + cmd + ". Make sure that the input is a valid shell command."))
