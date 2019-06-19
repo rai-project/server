@@ -428,6 +428,13 @@ func (w *WorkRequest) run() error {
 			"✱ The build folder has been uploaded to " + key +
 				". The data will be present for only a short duration of time.",
 		))
+
+		err = w.RecordJob()
+		if err != nil {
+			w.publishStderr(color.RedString("✱ Failed to add history in database.:", err))
+			log.WithError(err).Error("Failed to add history in database: ", err)
+		}
+
 	}()
 
 	for _, cmd := range buildSpec.Commands.Build {
