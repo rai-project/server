@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	log *logrus.Entry
+	log *logrus.Entry = logger.New().WithField("pkg", "server")
 )
 
 func init() {
