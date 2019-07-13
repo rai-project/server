@@ -414,7 +414,7 @@ func (w *WorkRequest) run() error {
 				"download_key": w.UploadKey,
 				"profile":      w.User,
 				"submitted_at": w.CreatedAt,
-				"job_request":  w.JobRequest,
+				"build_spec":   buildSpec,
 				"created_at":   time.Now(),
 			}),
 			s3.ContentType(archive.MimeType()),
@@ -461,6 +461,7 @@ func (w *WorkRequest) run() error {
 			return err
 		}
 	}
+	w.serverOptions.IncrementAvailableWorkers()
 	//log.WithField("id", w.ID).WithField("image", imageName).Debug("finished ")
 
 	return nil

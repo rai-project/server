@@ -29,7 +29,7 @@ func init() {
 	config.AfterInit(func() {
 		Config.Wait()
 		if err := setMaxFileRLimit(); err != nil {
-			log.WithError(err).Error("cannot set maximum file limit")
+			//log.WithError(err).Error("cannot set maximum file limit")
 		}
 	})
 }

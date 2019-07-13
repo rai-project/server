@@ -21,6 +21,7 @@ type Options struct {
 	timelimit                        time.Duration
 	onClose                          []func()
 	onWorkerClose                    []func()
+	IncrementAvailableWorkers        func()
 }
 
 type Option func(*Options)
@@ -107,5 +108,12 @@ func OnClose(f func()) Option {
 func OnWorkerClose(f func()) Option {
 	return func(o *Options) {
 		o.onWorkerClose = append(o.onWorkerClose, f)
+	}
+}
+
+// Increment Available Workers ...
+func IncrementAvailableWorkersSubscribe(f func()) Option {
+	return func(o *Options) {
+		o.IncrementAvailableWorkers = f
 	}
 }

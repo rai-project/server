@@ -4,6 +4,7 @@ import (
 	"github.com/rai-project/database"
 	"github.com/rai-project/database/mongodb"
 	"github.com/rai-project/model"
+	"github.com/rai-project/utils"
 	"gopkg.in/mgo.v2/bson"
 	"time"
 )
@@ -36,10 +37,28 @@ func (w *WorkRequest) RecordJob() error {
 	body.Username = w.JobRequest.User.Username
 	body.UserAccessKey = w.JobRequest.User.AccessKey
 	body.ProjectURL = w.JobRequest.UploadKey
-	//Delete entry after 1 month
-	body.ExpireAt = time.Now().AddDate(0, 1, 0)
+	//Delete entry after 1 year
+	body.ExpireAt = time.Now().AddDate(1, 0, 0)
 
-	db, err := mongodb.NewDatabase("RAI")
+	var dboptions []database.Option
+
+	//Temp Solution
+	var url string
+	var ep []string
+	var err error
+
+	url, err = utils.DecryptStringBase64("config.App.Secret", "==AES32==PT1BRVMzMj09pbtRGQBQ8yoAMsMM4U8sEMrcHoDMRQc9k0O5lM+k7DzrWY+fwvCier8fGpjgvAc13ZdtJPO0CEnkwK+y")
+	//ep:= utils.DecryptStringBase64(config.App.Secret, "==AES32==PT1BRVMzMj09pbtRGQBQ8yoAMsMM4U8sEMrcHoDMRQc9k0O5lM+k7DzrWY+fwvCier8fGpjgvAc13ZdtJPO0CEnkwK+y")
+
+	ep = append(ep, url)
+	dboptions = append(dboptions, database.Endpoints(ep))
+
+	//dboptions.Username = "==AES32==PT1BRVMzMj094TGm6kKGfrF58PcSVSgaEYCoEy3Vgb68+Da1uzegRog6KQRp7egaWA=="
+	//dboptions.Password = "==AES32==PT1BRVMzMj09QM2EmDCOdMX2uV5kOvWIEk85U++sM8+7K7ePdv/D0yFmtdkxPhjiXA=="
+
+	dboptions = append(dboptions, database.UsernamePassword("RAI_User_Account", "==AES32==PT1BRVMzMj09QM2EmDCOdMX2uV5kOvWIEk85U++sM8+7K7ePdv/D0yFmtdkxPhjiXA=="))
+
+	db, err := mongodb.NewDatabase("RAI", dboptions...)
 	if err != nil {
 		return err
 	}

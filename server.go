@@ -129,7 +129,6 @@ func (s *Server) jobHandler(pub broker.Publication) error {
 	}
 
 	OnClose(func() {
-		atomic.AddInt64(&s.availableWorkers, 1)
 	})(&s.options)
 
 	work, err := NewWorkerRequest(jobRequest, s.options)
@@ -178,8 +177,15 @@ func (s *Server) publishSubscribe() error {
 			for atomic.LoadInt64(&s.availableWorkers) <= 0 {
 				time.Sleep(bkof.Duration())
 			}
+		}),
+		broker.OnReceiveSubscribeMessageCallback(func(*broker.Message) {
 			atomic.AddInt64(&s.availableWorkers, -1)
-			bkof.Reset()
+		}),
+		broker.AvailableWorkersCountSubscribe(func() int64 {
+			return s.availableWorkers
+		}),
+		broker.DecrementAvailableWorkers(func() {
+			atomic.AddInt64(&s.availableWorkers, -1)
 		}),
 	)
 	if err != nil {
@@ -205,6 +211,11 @@ func (s *Server) Connect() error {
 	if err := s.broker.Connect(); err != nil {
 		return err
 	}
+
+	s.options.IncrementAvailableWorkers = (func() {
+		atomic.AddInt64(&s.availableWorkers, 1)
+	})
+
 	s.isConnected = true
 	return nil
 }
