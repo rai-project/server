@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/rai-project/config"
 	"github.com/rai-project/database"
 	"github.com/rai-project/database/mongodb"
 	"github.com/rai-project/model"
@@ -47,7 +48,7 @@ func (w *WorkRequest) RecordJob() error {
 	var ep []string
 	var err error
 
-	url, err = utils.DecryptStringBase64("config.App.Secret", "==AES32==PT1BRVMzMj09pbtRGQBQ8yoAMsMM4U8sEMrcHoDMRQc9k0O5lM+k7DzrWY+fwvCier8fGpjgvAc13ZdtJPO0CEnkwK+y")
+	url, err = utils.DecryptStringBase64(config.App.Secret, "==AES32==PT1BRVMzMj09pbtRGQBQ8yoAMsMM4U8sEMrcHoDMRQc9k0O5lM+k7DzrWY+fwvCier8fGpjgvAc13ZdtJPO0CEnkwK+y")
 	//ep:= utils.DecryptStringBase64(config.App.Secret, "==AES32==PT1BRVMzMj09pbtRGQBQ8yoAMsMM4U8sEMrcHoDMRQc9k0O5lM+k7DzrWY+fwvCier8fGpjgvAc13ZdtJPO0CEnkwK+y")
 
 	ep = append(ep, url)
